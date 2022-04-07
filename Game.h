@@ -4,6 +4,10 @@
 #include "DX12Helper.h"
 #include <DirectXMath.h>
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
+#include <memory>
+#include "Camera.h"
+#include "Mesh.h"
+#include "GameEntity.h"
 
 class Game 
 	: public DXCore
@@ -41,6 +45,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW vbView;
 	D3D12_INDEX_BUFFER_VIEW ibView;
+
+	std::shared_ptr<Camera> camera;
+	std::vector<std::shared_ptr<GameEntity>> entities;
+	std::vector<std::shared_ptr<Mesh>> meshes;
+
 
 };
 
