@@ -367,75 +367,88 @@ HRESULT DXCore::InitDirectX()
 // --------------------------------------------------------
 void DXCore::OnResize()
 {
-	// Release the buffers before resizing the swap chain
-	backBufferRTV.Reset();
-	depthStencilView.Reset();
-
-	// Resize the underlying swap chain buffers
-	swapChain->ResizeBuffers(
-		2,
-		width,
-		height,
-		DXGI_FORMAT_R8G8B8A8_UNORM,
-		0);
-
-	// Recreate the render target view for the back buffer
-	// texture, then release our local texture reference
-	ID3D11Texture2D* backBufferTexture = 0;
-	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture));
-	if (backBufferTexture != 0)
+	// Wait for the GPU to finish all work, since we'll
+// be destroying and recreating resources
+	DX12Helper::GetInstance().WaitForGPU();
+	// Release the back buffers using ComPtr's Reset()
+	for (unsigned int i = 0; i < numBackBuffers; i++)
+		backBuffers[i].Reset();
+	// Resize the swap chain (assuming a basic color format here)
+	swapChain->ResizeBuffers(numBackBuffers, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	// Go through the steps to setup the back buffers again
+	// Note: This assumes the descriptor heap already exists
+	// and that the rtvDescriptorSize was previously set
+	for (unsigned int i = 0; i < numBackBuffers; i++)
 	{
-		device->CreateRenderTargetView(
-			backBufferTexture, 
-			0, 
-			backBufferRTV.ReleaseAndGetAddressOf()); // ReleaseAndGetAddressOf() cleans up the old object before giving us the pointer
-		backBufferTexture->Release();
+		// Grab this buffer from the swap chain
+		swapChain->GetBuffer(i, IID_PPV_ARGS(backBuffers[i].GetAddressOf()));
+		// Make a handle for it
+		rtvHandles[i] = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+		rtvHandles[i].ptr += rtvDescriptorSize * i;
+		// Create the render target view
+		device->CreateRenderTargetView(backBuffers[i].Get(), 0, rtvHandles[i]);
 	}
+	// Reset back to the first back buffer
+	currentSwapBuffer = 0;
 
-	// Set up the description of the texture to use for the depth buffer
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width				= width;
-	depthStencilDesc.Height				= height;
-	depthStencilDesc.MipLevels			= 1;
-	depthStencilDesc.ArraySize			= 1;
-	depthStencilDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.Usage				= D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags			= D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags		= 0;
-	depthStencilDesc.MiscFlags			= 0;
-	depthStencilDesc.SampleDesc.Count	= 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-
-	// Create the depth buffer and its view, then 
-	// release our reference to the texture
-	ID3D11Texture2D* depthBufferTexture = 0;
-	device->CreateTexture2D(&depthStencilDesc, 0, &depthBufferTexture);
-	if (depthBufferTexture != 0)
+	// Reset the depth buffer and create it again
 	{
+		depthStencilBuffer.Reset();
+		// Describe the depth stencil buffer resource
+		D3D12_RESOURCE_DESC depthBufferDesc = {};
+		depthBufferDesc.Alignment = 0;
+		depthBufferDesc.DepthOrArraySize = 1;
+		depthBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		depthBufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthBufferDesc.Height = height;
+		depthBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		depthBufferDesc.MipLevels = 1;
+		depthBufferDesc.SampleDesc.Count = 1;
+		depthBufferDesc.SampleDesc.Quality = 0;
+		depthBufferDesc.Width = width;
+		// Describe the clear value that will most often be used
+		// for this buffer (which optimizes the clearing of the buffer)
+		D3D12_CLEAR_VALUE clear = {};
+		clear.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		clear.DepthStencil.Depth = 1.0f;
+		clear.DepthStencil.Stencil = 0;
+		// Describe the memory heap that will house this resource
+		D3D12_HEAP_PROPERTIES props = {};
+		props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		props.CreationNodeMask = 1;
+		props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		props.Type = D3D12_HEAP_TYPE_DEFAULT;
+		props.VisibleNodeMask = 1;
+		// Actually create the resource, and the heap in which it
+		// will reside, and map the resource to that heap
+		device->CreateCommittedResource(
+			&props,
+			D3D12_HEAP_FLAG_NONE,
+			&depthBufferDesc,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE,
+			&clear,
+			IID_PPV_ARGS(depthStencilBuffer.GetAddressOf()));
+		// Now recreate the depth stencil view
+		dsvHandle = dsvHeap->GetCPUDescriptorHandleForHeapStart();
 		device->CreateDepthStencilView(
-			depthBufferTexture, 
-			0, 
-			depthStencilView.ReleaseAndGetAddressOf()); // ReleaseAndGetAddressOf() cleans up the old object before giving us the pointer
-		depthBufferTexture->Release();
+			depthStencilBuffer.Get(),
+			0, // Default view (first mip)
+			dsvHandle);
 	}
 
-	// Bind the views to the pipeline, so rendering properly 
-	// uses their underlying textures
-	context->OMSetRenderTargets(
-		1, 
-		backBufferRTV.GetAddressOf(), // This requires a pointer to a pointer (an array of pointers), so we get the address of the pointer
-		depthStencilView.Get());
-
-	// Lastly, set up a viewport so we render into
-	// to correct portion of the window
-	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = (float)width;
-	viewport.Height = (float)height;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	context->RSSetViewports(1, &viewport);
+	// Recreate the viewport and scissor rects, too,
+		// since the window size has changed
+	{
+		// Update the viewport and scissor rect so we render into the correct
+		// portion of the render target
+		viewport.Width = (float)width;
+		viewport.Height = (float)height;
+		scissorRect.right = width;
+		scissorRect.bottom = height;
+	}
+		// Wait for the GPU before we proceed
+	DX12Helper::GetInstance().WaitForGPU();
 }
 
 
@@ -559,6 +572,8 @@ void DXCore::UpdateTitleBarStats()
 	// Append the version of DirectX the app is using
 	switch (dxFeatureLevel)
 	{
+	case D3D_FEATURE_LEVEL_12_1: output << " DX 12.1"; break; // New!
+	case D3D_FEATURE_LEVEL_12_0: output << " DX 12.0"; break; // New!
 	case D3D_FEATURE_LEVEL_11_1: output << "    DX 11.1"; break;
 	case D3D_FEATURE_LEVEL_11_0: output << "    DX 11.0"; break;
 	case D3D_FEATURE_LEVEL_10_1: output << "    DX 10.1"; break;
