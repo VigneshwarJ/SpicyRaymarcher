@@ -63,11 +63,7 @@ void Game::Init()
 	CreateRootSigAndPipelineState();
 	CreateBasicGeometry();
 
-	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/sphere.obj").c_str(), device));
-	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/cube.obj").c_str(), device));
-	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/helix.obj").c_str(), device));
-
-	entities.push_back(std::make_shared<GameEntity>(meshes[0], Transform()));
+	CreateEntities();
 
 	camera = std::make_shared<Camera>(
 		0, 0, -10,	// Position
@@ -260,6 +256,28 @@ void Game::CreateBasicGeometry()
 
 }
 
+void Game::CreateEntities()
+{
+	CreateMeshes();
+	entities.push_back(std::make_shared<GameEntity>(meshes[0], Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[1], Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[2], Transform()));
+}
+
+void Game::CreateMeshes()
+{
+	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/sphere.obj").c_str(), device));
+	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/cube.obj").c_str(), device));
+	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/helix.obj").c_str(), device));
+}
+
+void Game::PlaceEntities()
+{
+	entities[0]->GetTransform()->SetPosition(1.0f, 0.0f, 0.0f);
+	entities[1]->GetTransform()->SetPosition(0.0f, 0.0f, 0.0f);
+	entities[2]->GetTransform()->SetPosition(-1.0f, 0.0f, 0.0f);
+}
+
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
@@ -325,11 +343,31 @@ void Game::Draw(float deltaTime, float totalTime)
 		commandList->OMSetRenderTargets(1, &rtvHandles[currentSwapBuffer], true, &dsvHandle);
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissorRect);
-		commandList->IASetVertexBuffers(0, 1, &vbView);
-		commandList->IASetIndexBuffer(&ibView);
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
+			dx12Helper.GetConstantBufferDescriptorHeap();
+		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
+
 		// Draw
-		commandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+		for (int i = 0; i < entities.size(); i++)
+		{
+			VertexShaderExternalData externalData = {};
+			D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12Helper.FillNextConstantBufferAndGetGPUDescriptorHandle();
+
+			commandList->SetGraphicsRootDescriptorTable(0, handle);
+
+			// Grab the vertex buffer view and index buffer view from this entity’s mesh
+
+			//Set them using IASetVertexBuffers() and IASetIndexBuffer()
+			//commandList->IASetVertexBuffers(0, 1, &vbView);
+			//commandList->IASetIndexBuffer(&ibView);
+
+			// Call DrawIndexedInstanced() using the index count of this entity’s mesh
+			//commandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+		}
+
+
 	}
 
 	// Present

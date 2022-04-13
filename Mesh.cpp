@@ -6,10 +6,10 @@
 
 using namespace DirectX;
 
-Mesh::Mesh(Vertex* vertArray, int numVerts, unsigned int* indexArray, int numIndices, Microsoft::WRL::ComPtr<ID3D12Resource> device)
-{
-	CreateBuffers(vertArray, numVerts, indexArray, numIndices, device);
-}
+//Mesh::Mesh(Vertex* vertArray, int numVerts, unsigned int* indexArray, int numIndices, Microsoft::WRL::ComPtr<ID3D12Device> device)
+//{
+//	CreateBuffers(vertArray, numVerts, indexArray, numIndices, device);
+//}
 
 Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
@@ -194,38 +194,38 @@ Mesh::~Mesh(void)
 }
 
 
-//void Mesh::CreateBuffers(Vertex* vertArray, int numVerts, unsigned int* indexArray, int numIndices, Microsoft::WRL::ComPtr<ID3D11Device> device)
+//void Mesh::CreateBuffers(Vertex* vertArray, int numVerts, unsigned int* indexArray, int numIndices, Microsoft::WRL::ComPtr<ID3D12Device> device)
 //{
-//	// Always calculate the tangents before copying to buffer
-//	CalculateTangents(vertArray, numVerts, indexArray, numIndices);
-//
-//
-//	// Create the vertex buffer
-//	D3D11_BUFFER_DESC vbd;
-//	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-//	vbd.ByteWidth = sizeof(Vertex) * numVerts; // Number of vertices
-//	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-//	vbd.CPUAccessFlags = 0;
-//	vbd.MiscFlags = 0;
-//	vbd.StructureByteStride = 0;
-//	D3D11_SUBRESOURCE_DATA initialVertexData;
-//	initialVertexData.pSysMem = vertArray;
-//	device->CreateBuffer(&vbd, &initialVertexData, vb.GetAddressOf());
-//
-//	// Create the index buffer
-//	D3D11_BUFFER_DESC ibd;
-//	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-//	ibd.ByteWidth = sizeof(unsigned int) * numIndices; // Number of indices
-//	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-//	ibd.CPUAccessFlags = 0;
-//	ibd.MiscFlags = 0;
-//	ibd.StructureByteStride = 0;
-//	D3D11_SUBRESOURCE_DATA initialIndexData;
-//	initialIndexData.pSysMem = indexArray;
-//	device->CreateBuffer(&ibd, &initialIndexData, ib.GetAddressOf());
-//
-//	// Save the indices
-//	this->numIndices = numIndices;
+	//// Always calculate the tangents before copying to buffer
+	//CalculateTangents(vertArray, numVerts, indexArray, numIndices);
+
+
+	//// Create the vertex buffer
+	//D3D11_BUFFER_DESC vbd;
+	//vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	//vbd.ByteWidth = sizeof(Vertex) * numVerts; // Number of vertices
+	//vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	//vbd.CPUAccessFlags = 0;
+	//vbd.MiscFlags = 0;
+	//vbd.StructureByteStride = 0;
+	//D3D11_SUBRESOURCE_DATA initialVertexData;
+	//initialVertexData.pSysMem = vertArray;
+	//device->CreateBuffer(&vbd, &initialVertexData, vb.GetAddressOf());
+
+	//// Create the index buffer
+	//D3D11_BUFFER_DESC ibd;
+	//ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	//ibd.ByteWidth = sizeof(unsigned int) * numIndices; // Number of indices
+	//ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	//ibd.CPUAccessFlags = 0;
+	//ibd.MiscFlags = 0;
+	//ibd.StructureByteStride = 0;
+	//D3D11_SUBRESOURCE_DATA initialIndexData;
+	//initialIndexData.pSysMem = indexArray;
+	//device->CreateBuffer(&ibd, &initialIndexData, ib.GetAddressOf());
+
+	//// Save the indices
+	//this->numIndices = numIndices;
 //}
 
 

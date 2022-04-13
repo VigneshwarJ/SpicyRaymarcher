@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "GameEntity.h"
+#include "BufferStructs.h"
 
 class Game 
 	: public DXCore
@@ -32,6 +33,9 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void CreateRootSigAndPipelineState();
 	void CreateBasicGeometry();
+	void CreateEntities();
+	void CreateMeshes();
+	void PlaceEntities();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
