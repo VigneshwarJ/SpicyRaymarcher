@@ -64,9 +64,10 @@ void Game::Init()
 	CreateBasicGeometry();
 
 	CreateEntities();
+	PlaceEntities();
 
 	camera = std::make_shared<Camera>(
-		0, 0, -10,	// Position
+		0.0f, -10.0f, 0.0f,	// Position
 		3.0f,		// Move speed
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
@@ -273,9 +274,12 @@ void Game::CreateMeshes()
 
 void Game::PlaceEntities()
 {
-	entities[0]->GetTransform()->SetPosition(1.0f, 0.0f, 0.0f);
+	entities[0]->GetTransform()->SetPosition(2.0f, 0.0f, 0.0f);
 	entities[1]->GetTransform()->SetPosition(0.0f, 0.0f, 0.0f);
-	entities[2]->GetTransform()->SetPosition(-1.0f, 0.0f, 0.0f);
+	entities[2]->GetTransform()->SetPosition(-2.0f, 0.0f, 0.0f);
+	//entities[0]->GetTransform()->SetScale(10.0f, 10.0f, 10.0f);
+	//entities[1]->GetTransform()->SetScale(10.0f, 10.0f, 10.0f);
+	//entities[2]->GetTransform()->SetScale(10.0f, 10.0f, 10.0f);
 }
 
 
@@ -294,6 +298,13 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	camera->Update(deltaTime);
+	
+	for (int i = 0; i < entities.size(); i++)
+	{
+		entities[i]->GetTransform()->Rotate(0.0f, 1.0f, 0.0f);
+	}
+
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
@@ -304,6 +315,8 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
+
 	// Grab the current back buffer for this frame
 		Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
 	// Clearing the render target
@@ -346,25 +359,27 @@ void Game::Draw(float deltaTime, float totalTime)
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
-			dx12Helper.GetConstantBufferDescriptorHeap();
+			dx12HelperInst.GetCBVSRVDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 
 		// Draw
 		for (int i = 0; i < entities.size(); i++)
 		{
 			VertexShaderExternalData externalData = {};
-			D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12Helper.FillNextConstantBufferAndGetGPUDescriptorHandle();
+			D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(&externalData, sizeof(externalData));
 
 			commandList->SetGraphicsRootDescriptorTable(0, handle);
 
 			// Grab the vertex buffer view and index buffer view from this entity’s mesh
+			vbView = entities[i]->GetMesh()->GetVertBufferView();
+			ibView = entities[i]->GetMesh()->GetIndexBufferView();
 
 			//Set them using IASetVertexBuffers() and IASetIndexBuffer()
-			//commandList->IASetVertexBuffers(0, 1, &vbView);
-			//commandList->IASetIndexBuffer(&ibView);
+			commandList->IASetVertexBuffers(0, 1, &vbView);
+			commandList->IASetIndexBuffer(&ibView);
 
 			// Call DrawIndexedInstanced() using the index count of this entity’s mesh
-			//commandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+			commandList->DrawIndexedInstanced(entities[i]->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
 		}
 
 
@@ -382,7 +397,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		commandList->ResourceBarrier(1, &rb);
 		// Must occur BEFORE present
-		DX12Helper::GetInstance().CloseExecuteAndResetCommandList();
+		dx12HelperInst.CloseExecuteAndResetCommandList();
 		// Present the current back buffer
 		swapChain->Present(vsync ? 1 : 0, 0);
 		// Figure out which buffer is next

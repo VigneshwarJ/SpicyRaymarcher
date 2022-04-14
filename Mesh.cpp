@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <fstream>
+#include <iostream>
 
 using namespace DirectX;
 
@@ -18,6 +19,7 @@ Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D12Device> device)
 
 	// Check for successful open
 	if (!obj.is_open())
+		//std::cout << "File failed to open: " << objFile << std::endl;
 		return;
 
 	// Variables used while reading the file
@@ -177,6 +179,7 @@ Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D12Device> device)
 	DX12Helper& dx12Helper = DX12Helper::GetInstance();
 	vb = dx12Helper.CreateStaticBuffer(sizeof(Vertex), verts.size(), &verts[0]);
 	ib = dx12Helper.CreateStaticBuffer(sizeof(unsigned int), indices.size(), &indices[0]);
+	numIndices = indices.size();
 
 	//set up buffer views
 	vbView.StrideInBytes = sizeof(Vertex);
