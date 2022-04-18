@@ -67,7 +67,7 @@ void Game::Init()
 	PlaceEntities();
 
 	camera = std::make_shared<Camera>(
-		0.0f, -10.0f, 0.0f,	// Position
+		0.0f, 0.0f, -10.0f,	// Position
 		3.0f,		// Move speed
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
@@ -366,6 +366,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		for (int i = 0; i < entities.size(); i++)
 		{
 			VertexShaderExternalData externalData = {};
+			externalData.world = entities[i]->GetTransform()->GetWorldMatrix();
+			externalData.view = camera->GetView();
+			externalData.projection = camera->GetProjection();
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(&externalData, sizeof(externalData));
 
 			commandList->SetGraphicsRootDescriptorTable(0, handle);
