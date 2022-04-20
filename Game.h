@@ -36,6 +36,7 @@ private:
 	void CreateEntities();
 	void CreateMeshes();
 	void PlaceEntities();
+	void LoadTextures();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
