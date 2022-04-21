@@ -6,6 +6,7 @@
 // Alignment matters!!!
 cbuffer ExternalData : register(b0)
 {
+	//float4 colorTint;
 	float2 uvScale;
 	float2 uvOffset;
 	float3 cameraPosition;
@@ -52,8 +53,48 @@ SamplerState BasicSampler		: register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, input.uv);
-	return surfaceColor;
+	//return lights[0].Color.xyzz;
+	// Always re-normalize interpolated direction vectors
+	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
 
+	//sampling the other textures
+	input.normal = NormalMapping(NormalTexture, BasicSampler, input.uv, input.normal, input.tangent);
+	float roughness = RoughnessTexture.Sample(BasicSampler, input.uv).r;
+	float metal = MetalTexture.Sample(BasicSampler, input.uv).r;
+
+	//sampling the actual albedo
+	float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, input.uv);
+	surfaceColor.rgb = pow(surfaceColor.rgb, 2.2);// * colorTint.rgb; //apply gamma correction
+		// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
+	// Note the use of lerp here - metal is generally 0 or 1, but might be in between
+	// because of linear texture sampling, so we want lerp the specular color to match
+	float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, metal);
+
+	// Total color for this pixel
+	float3 totalColor = float3(0, 0, 0);
+
+	// Loop through all lights this frame
+	for (int i = 0; i < lightCount; i++)
+	{
+		// Which kind of light?
+		switch (lights[i].Type)
+		{
+		case LIGHT_TYPE_DIRECTIONAL:
+			totalColor += DirLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
+			break;
+
+		case LIGHT_TYPE_POINT:
+			totalColor += PointLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
+			break;
+
+		case LIGHT_TYPE_SPOT:
+			totalColor += SpotLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
+			break;
+		}
+	}
+
+	//return surfaceColor.xyzz;
+	return totalColor.xyzz;
 
 }

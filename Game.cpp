@@ -74,6 +74,24 @@ void Game::Init()
 	CreateEntities();
 	PlaceEntities();
 
+	Light point = {};
+	point.Type = LIGHT_TYPE_POINT;
+	point.Position = XMFLOAT3(-5.0f, -5.0f, -5.0f);
+	point.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
+	point.Range = 100.0f;
+	point.Intensity = 1.0f;
+
+	Light directional = {};
+	directional.Type = LIGHT_TYPE_DIRECTIONAL;
+	directional.Direction = XMFLOAT3(3.0f, 3.0f, -3.0f);
+	directional.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
+	directional.Range = 10.0f;
+	directional.Intensity = 1.0f;
+
+	lights[0] = point;
+	lights[1] = directional;
+	lightCount = 2;
+
 
 	camera = std::make_shared<Camera>(
 		0.0f, 0.0f, -10.0f,	// Position
@@ -447,18 +465,41 @@ void Game::Draw(float deltaTime, float totalTime)
 		for (int i = 0; i < entities.size(); i++)
 		{
 			std::shared_ptr<GameEntity> thisEntity = entities[i];
-
-			VertexShaderExternalData externalData = {};
-			externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
-			externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
-			externalData.view = camera->GetView();
-			externalData.projection = camera->GetProjection();
-			D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(&externalData, sizeof(externalData));
-
-			commandList->SetGraphicsRootDescriptorTable(0, handle);
-
 			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
+
 			commandList->SetPipelineState(mat->GetPipelineState().Get());
+			//vert shader setup
+			{
+				VertexShaderExternalData externalData = {};
+				externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
+				externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
+				externalData.view = camera->GetView();
+				externalData.projection = camera->GetProjection();
+				D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(&externalData, sizeof(externalData));
+
+				commandList->SetGraphicsRootDescriptorTable(0, handle);
+			}
+			// Pixel shader data and cbuffer setup
+			{
+				PixelShaderExternalData psData = {};
+				//psData.colorTint = mat-> GetColorTint();
+				psData.uvScale = mat-> GetUVScale();
+				psData.uvOffset = mat->GetUVOffset();
+				psData.cameraPosition = camera->GetTransform()->GetPosition();
+				psData.lightCount = lightCount;
+				memcpy(psData.lights, &lights[0], sizeof(Light) * lightCount);
+				// Send this to a chunk of the constant buffer heap
+				// and grab the GPU handle for it so we can set it for this draw
+				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+						(void*)(&psData), sizeof(PixelShaderExternalData));
+				// Set this constant buffer handle
+				// Note: This assumes that descriptor table 1 is the
+				// place to put this particular descriptor. This
+				// is based on how we set up our root signature.
+				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+			}
+
 			// Set the SRV descriptor handle for this material's textures
 			// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
 			commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());

@@ -45,3 +45,18 @@ D3D12_GPU_DESCRIPTOR_HANDLE Material::GetFinalGPUHandleForTextures()
 {
 	return finalGPUHandleForSRVs;
 }
+
+DirectX::XMFLOAT4 Material::GetColorTint()
+{
+	return colorTint;
+}
+
+DirectX::XMFLOAT2 Material::GetUVScale()
+{
+	return uvScale;
+}
+
+DirectX::XMFLOAT2 Material::GetUVOffset()
+{
+	return uvOffset;
+}

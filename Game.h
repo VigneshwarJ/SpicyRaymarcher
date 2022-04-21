@@ -41,6 +41,10 @@ private:
 	void LoadTextures();
 	void CreateMaterials();
 
+	//void RandomLighting();
+	//void CreateRandomPointLights(int count);
+
+
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
 	//    Component Object Model, which DirectX objects do
@@ -59,7 +63,7 @@ private:
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::shared_ptr<Material> material;
 
-	std::shared_ptr<Light> lights[128];
+	Light lights[128];
 	int lightCount;
 	
 };

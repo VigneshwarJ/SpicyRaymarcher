@@ -20,6 +20,10 @@ public:
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipelineState();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetFinalGPUHandleForTextures();
+
+	DirectX::XMFLOAT4 GetColorTint();
+	DirectX::XMFLOAT2 GetUVScale();
+	DirectX::XMFLOAT2 GetUVOffset();
 	//Material(
 	//	DirectX::XMFLOAT4 tint,
 	//	std::shared_ptr<SimplePixelShader> pixShader,
