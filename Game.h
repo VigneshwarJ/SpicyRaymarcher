@@ -8,7 +8,9 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "GameEntity.h"
+#include "Material.h"
 #include "BufferStructs.h"
+#include "Lights.h"
 
 class Game 
 	: public DXCore
@@ -37,6 +39,7 @@ private:
 	void CreateMeshes();
 	void PlaceEntities();
 	void LoadTextures();
+	void CreateMaterials();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -54,7 +57,10 @@ private:
 	std::shared_ptr<Camera> camera;
 	std::vector<std::shared_ptr<GameEntity>> entities;
 	std::vector<std::shared_ptr<Mesh>> meshes;
+	std::shared_ptr<Material> material;
 
-
+	std::shared_ptr<Light> lights[128];
+	int lightCount;
+	
 };
 

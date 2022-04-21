@@ -1,6 +1,7 @@
 cbuffer perFrame : register (b0)
 {
 	matrix world;
+	matrix worldInverseTranspose;
 	matrix view;
 	matrix projection;
 };
@@ -38,7 +39,10 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;	// XYZW position (System Value Position)
-
+	float3 worldPosition	: POSITION;
+	float2 uv				: TEXCOORD;
+	float3 normal			: NORMAL;
+	float3 tangent			: TANGENT;
 };
 
 // --------------------------------------------------------
@@ -60,14 +64,14 @@ VertexToPixel main( VertexShaderInput input )
 
 	//// Calculate the world position of this vertex (to be used
 	//// in the pixel shader when we do point/spot lights)
-	//output.worldPos = mul(world, float4(input.localPosition, 1.0f)).xyz;
+	output.worldPosition = mul(world, float4(input.localPosition, 1.0f)).xyz;
 
 	//// Make sure the normal is in WORLD space, not "local" space
-	//output.normal = normalize(mul((float3x3)worldInverseTranspose, input.normal));
-	//output.tangent = normalize(mul((float3x3)worldInverseTranspose, input.tangent));
+	output.normal = normalize(mul((float3x3)worldInverseTranspose, input.normal));
+	output.tangent = normalize(mul((float3x3)world, input.tangent));
 
 	//// Pass through the uv
-	//output.uv = input.uv * uvScale;
+	output.uv = input.uv; //* uvScale;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

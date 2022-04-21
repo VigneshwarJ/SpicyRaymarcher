@@ -1,7 +1,11 @@
 #pragma once
 #include <d3d12.h>
 #include <wrl/client.h>
-#include <memory>
+#include <vector>
+
+#include "WICTextureLoader.h"
+#include "ResourceUploadBatch.h"
+using namespace DirectX;
 
 class DX12Helper
 {

@@ -1,3 +1,17 @@
+#include "Lighting.hlsli"
+
+// How many lights could we handle?
+#define MAX_LIGHTS 128
+
+// Alignment matters!!!
+cbuffer ExternalData : register(b0)
+{
+	float2 uvScale;
+	float2 uvOffset;
+	float3 cameraPosition;
+	int lightCount;
+	Light lights[MAX_LIGHTS];
+}
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -12,7 +26,20 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;
+	float3 worldPosition	: POSITION;
+	float2 uv				: TEXCOORD;
+	float3 normal			: NORMAL;
+	float3 tangent			: TANGENT;
 };
+
+// Texture-related variables
+Texture2D AlbedoTexture			: register(t0);
+Texture2D MetalTexture			: register(t1);
+Texture2D NormalTexture			: register(t2);
+Texture2D RoughnessTexture		: register(t3);
+
+
+SamplerState BasicSampler		: register(s0);
 
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
@@ -25,9 +52,8 @@ struct VertexToPixel
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// Just return the input color
-	// - This color (like most values passing through the rasterizer) is 
-	//   interpolated for each pixel between the corresponding vertices 
-	//   of the triangle we're rendering
-	return float4(1, 1, 1, 1);
+	float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, input.uv);
+	return surfaceColor;
+
+
 }

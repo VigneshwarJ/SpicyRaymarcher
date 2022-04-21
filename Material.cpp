@@ -22,5 +22,26 @@ void Material::FinalizeMaterial()
 	if (finalized) return; //dont do anything if this is already finalized
 
 	DX12Helper& dx12Helper = DX12Helper::GetInstance();
-	dx12Helper.CopySRVsToDescriptorHeapAndGetGPUDescriptorHandle();
+
+	for (int i = 0; i < highestSRVIndex; i++)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12Helper.CopySRVsToDescriptorHeapAndGetGPUDescriptorHandle(textureSRVsBySlot[i], 1);
+		
+		if (i == 0) //we just want the first one, to point to the first descriptor in the final heap
+		{
+			finalGPUHandleForSRVs = handle;
+		}
+	}
+
+	finalized = true;
+}
+
+Microsoft::WRL::ComPtr<ID3D12PipelineState> Material::GetPipelineState()
+{
+	return pipelineState;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Material::GetFinalGPUHandleForTextures()
+{
+	return finalGPUHandleForSRVs;
 }

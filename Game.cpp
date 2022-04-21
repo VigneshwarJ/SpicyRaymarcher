@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Vertex.h"
 #include "Input.h"
+#include "WICTextureLoader.h"
 
 // Needed for a helper function to read compiled shader files from the hard drive
 #pragma comment(lib, "d3dcompiler.lib")
@@ -68,8 +69,11 @@ void Game::Init()
 	CreateRootSigAndPipelineState();
 	CreateBasicGeometry();
 
+	CreateMaterials();
+
 	CreateEntities();
 	PlaceEntities();
+
 
 	camera = std::make_shared<Camera>(
 		0.0f, 0.0f, -10.0f,	// Position
@@ -124,6 +128,7 @@ void Game::CreateRootSigAndPipelineState()
 		cbvRangeVS.BaseShaderRegister = 0;
 		cbvRangeVS.RegisterSpace = 0;
 		cbvRangeVS.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
 		// Describe the range of CBVs needed for the pixel shader
 		D3D12_DESCRIPTOR_RANGE cbvRangePS = {};
 		cbvRangePS.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
@@ -131,31 +136,38 @@ void Game::CreateRootSigAndPipelineState()
 		cbvRangePS.BaseShaderRegister = 0;
 		cbvRangePS.RegisterSpace = 0;
 		cbvRangePS.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
 		// Create a range of SRV's for textures
 		D3D12_DESCRIPTOR_RANGE srvRange = {};
 		srvRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		srvRange.NumDescriptors = 4; // Set to max number of textures at once (match pixel shader!)
-		srvRange.BaseShaderRegister = 0; // Starts at s0 (match pixel shader!)
+		srvRange.NumDescriptors = 4;		// Set to max number of textures at once (match pixel shader!)
+		srvRange.BaseShaderRegister = 0;	// Starts at s0 (match pixel shader!)
 		srvRange.RegisterSpace = 0;
 		srvRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
 		// Create the root parameters
 		D3D12_ROOT_PARAMETER rootParams[3] = {};
+
 		// CBV table param for vertex shader
 		rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 		rootParams[0].DescriptorTable.NumDescriptorRanges = 1;
 		rootParams[0].DescriptorTable.pDescriptorRanges = &cbvRangeVS;
-		// CBV table param for pixel shader
+
+		// CBV table param for vertex shader
 		rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 		rootParams[1].DescriptorTable.NumDescriptorRanges = 1;
 		rootParams[1].DescriptorTable.pDescriptorRanges = &cbvRangePS;
+
 		// SRV table param
 		rootParams[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootParams[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 		rootParams[2].DescriptorTable.NumDescriptorRanges = 1;
 		rootParams[2].DescriptorTable.pDescriptorRanges = &srvRange;
+
 		// Create a single static sampler (available to all pixel shaders at the same slot)
+		// Note: This is in lieu of having materials have their own samplers for this demo
 		D3D12_STATIC_SAMPLER_DESC anisoWrap = {};
 		anisoWrap.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 		anisoWrap.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -163,9 +175,11 @@ void Game::CreateRootSigAndPipelineState()
 		anisoWrap.Filter = D3D12_FILTER_ANISOTROPIC;
 		anisoWrap.MaxAnisotropy = 16;
 		anisoWrap.MaxLOD = D3D12_FLOAT32_MAX;
-		anisoWrap.ShaderRegister = 0; // register(s0)
+		anisoWrap.ShaderRegister = 0;  // register(s0)
 		anisoWrap.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
 		D3D12_STATIC_SAMPLER_DESC samplers[] = { anisoWrap };
+
 		// Describe and serialize the root signature
 		D3D12_ROOT_SIGNATURE_DESC rootSig = {};
 		rootSig.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -173,6 +187,28 @@ void Game::CreateRootSigAndPipelineState()
 		rootSig.pParameters = rootParams;
 		rootSig.NumStaticSamplers = ARRAYSIZE(samplers);
 		rootSig.pStaticSamplers = samplers;
+
+		ID3DBlob* serializedRootSig = 0;
+		ID3DBlob* errors = 0;
+
+		D3D12SerializeRootSignature(
+			&rootSig,
+			D3D_ROOT_SIGNATURE_VERSION_1,
+			&serializedRootSig,
+			&errors);
+
+		// Check for errors during serialization
+		if (errors != 0)
+		{
+			OutputDebugString((char*)errors->GetBufferPointer());
+		}
+
+		// Actually create the root sig
+		device->CreateRootSignature(
+			0,
+			serializedRootSig->GetBufferPointer(),
+			serializedRootSig->GetBufferSize(),
+			IID_PPV_ARGS(rootSignature.GetAddressOf()));
 	}
 	// Pipeline state
 	{
@@ -211,6 +247,7 @@ void Game::CreateRootSigAndPipelineState()
 		// Create the pipe state object
 		device->CreateGraphicsPipelineState(&psoDesc,
 			IID_PPV_ARGS(pipelineState.GetAddressOf()));
+
 	}
 }
 
@@ -275,9 +312,9 @@ void Game::CreateBasicGeometry()
 void Game::CreateEntities()
 {
 	CreateMeshes();
-	entities.push_back(std::make_shared<GameEntity>(meshes[0], Transform()));
-	entities.push_back(std::make_shared<GameEntity>(meshes[1], Transform()));
-	entities.push_back(std::make_shared<GameEntity>(meshes[2], Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[0], material, Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[1], material, Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[2], material, Transform()));
 }
 
 void Game::CreateMeshes()
@@ -299,10 +336,31 @@ void Game::PlaceEntities()
 
 void Game::LoadTextures()
 {
-	//CreateWICTextureFromFile(
-	//	device,
+	
+}
 
-	//)
+void Game::CreateMaterials()
+{
+	std::wstring assets = GetFullPathTo_Wide(L"../../Assets");
+	std::wstring textures = assets + L"\\Textures";
+	D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_albedo.png").c_str());
+	D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_metal.png").c_str());
+	D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_normals.png").c_str());
+	D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_roughness.png").c_str());
+
+	material = std::make_shared<Material>(
+		pipelineState,
+		DirectX::XMFLOAT4(),
+		DirectX::XMFLOAT2(1.0f, 1.0f),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+		);
+
+	material->AddTexture(albedo, 0);
+	material->AddTexture(metal, 1);
+	material->AddTexture(normals, 2);
+	material->AddTexture(roughness, 3);
+
+	material->FinalizeMaterial();
 }
 
 
@@ -325,7 +383,7 @@ void Game::Update(float deltaTime, float totalTime)
 	
 	for (int i = 0; i < entities.size(); i++)
 	{
-		entities[i]->GetTransform()->Rotate(0.0f, 1.0f, 0.0f);
+		entities[i]->GetTransform()->Rotate(0.0f, 0.01f, 0.0f);
 	}
 
 	// Example input checking: Quit if the escape key is pressed
@@ -388,24 +446,33 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Draw
 		for (int i = 0; i < entities.size(); i++)
 		{
+			std::shared_ptr<GameEntity> thisEntity = entities[i];
+
 			VertexShaderExternalData externalData = {};
-			externalData.world = entities[i]->GetTransform()->GetWorldMatrix();
+			externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
+			externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
 			externalData.view = camera->GetView();
 			externalData.projection = camera->GetProjection();
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(&externalData, sizeof(externalData));
 
 			commandList->SetGraphicsRootDescriptorTable(0, handle);
 
+			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
+			commandList->SetPipelineState(mat->GetPipelineState().Get());
+			// Set the SRV descriptor handle for this material's textures
+			// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
+			commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
+
 			// Grab the vertex buffer view and index buffer view from this entity’s mesh
-			vbView = entities[i]->GetMesh()->GetVertBufferView();
-			ibView = entities[i]->GetMesh()->GetIndexBufferView();
+			vbView = thisEntity->GetMesh()->GetVertBufferView();
+			ibView = thisEntity->GetMesh()->GetIndexBufferView();
 
 			//Set them using IASetVertexBuffers() and IASetIndexBuffer()
 			commandList->IASetVertexBuffers(0, 1, &vbView);
 			commandList->IASetIndexBuffer(&ibView);
 
 			// Call DrawIndexedInstanced() using the index count of this entity’s mesh
-			commandList->DrawIndexedInstanced(entities[i]->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
+			commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
 		}
 
 

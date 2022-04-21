@@ -2,7 +2,7 @@
 #include "DXCore.h"
 #include <DirectXMath.h>
 #include <memory>
-#include "WICTextureLoader.h"
+//#include "WICTextureLoader.h"
 #include "d3d12.h"
 
 class Material
@@ -17,6 +17,9 @@ public:
 
 	void AddTexture(D3D12_CPU_DESCRIPTOR_HANDLE srv, int slot);
 	void FinalizeMaterial();
+
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipelineState();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetFinalGPUHandleForTextures();
 	//Material(
 	//	DirectX::XMFLOAT4 tint,
 	//	std::shared_ptr<SimplePixelShader> pixShader,
@@ -64,7 +67,7 @@ private:
 	//Microsoft::WRL::ComPtr<D3D12_CPU_DESCRIPTOR_HANDLE> textureSRVsBySlot[4]; //doing 4 slots instead of individual srvs for prb things
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSRVsBySlot[128]; //using All of Slots
 	int highestSRVIndex; //the highest index actually used in the above textureSRVsBySlot array
-	Microsoft::WRL::ComPtr<D3D12_GPU_DESCRIPTOR_HANDLE> finalGPUHandleForSRVs;
+	D3D12_GPU_DESCRIPTOR_HANDLE finalGPUHandleForSRVs;
 
 	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureSRV;
 	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalSRV;
