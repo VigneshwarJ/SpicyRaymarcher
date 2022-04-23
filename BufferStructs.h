@@ -12,7 +12,7 @@ struct VertexShaderExternalData
 
 struct PixelShaderExternalData
 {
-	//DirectX::XMFLOAT4 colorTint;
+	DirectX::XMFLOAT4 colorTint;
 	DirectX::XMFLOAT2 uvScale;
 	DirectX::XMFLOAT2 uvOffset;
 	DirectX::XMFLOAT3 cameraPosition;

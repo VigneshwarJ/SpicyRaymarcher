@@ -6,7 +6,7 @@
 // Alignment matters!!!
 cbuffer ExternalData : register(b0)
 {
-	//float4 colorTint;
+	float4 colorTint;
 	float2 uvScale;
 	float2 uvOffset;
 	float3 cameraPosition;
@@ -53,6 +53,8 @@ SamplerState BasicSampler		: register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
+	//return RoughnessTexture.Sample(BasicSampler, input.uv).rgba;
+
 	//return lights[0].Color.xyzz;
 	// Always re-normalize interpolated direction vectors
 	input.normal = normalize(input.normal);
@@ -66,6 +68,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//sampling the actual albedo
 	float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, input.uv);
 	surfaceColor.rgb = pow(surfaceColor.rgb, 2.2);// * colorTint.rgb; //apply gamma correction
+	//return surfaceColor.xyzz;
+
 		// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
 	// Note the use of lerp here - metal is generally 0 or 1, but might be in between
 	// because of linear texture sampling, so we want lerp the specular color to match
@@ -93,6 +97,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 			break;
 		}
 	}
+
+
 
 	//return surfaceColor.xyzz;
 	return totalColor.xyzz;

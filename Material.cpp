@@ -8,13 +8,21 @@ Material::Material(Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline, DirectX
 	this->uvScale = uvScale;
 	this->uvOffset = uvOffset;
 	finalized = false;
+	highestSRVIndex = -1;
+
+	finalGPUHandleForSRVs = {};
+	ZeroMemory(textureSRVsBySlot, sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * 128);
 }
 
 void Material::AddTexture(D3D12_CPU_DESCRIPTOR_HANDLE srv, int slot)
 {
+	// Valid slot?
+	if (finalized || slot < 0 || slot >= 128)
+		return;
+
+	// Save and check if this was the highest slot
 	textureSRVsBySlot[slot] = srv;
-	highestSRVIndex = slot; //im not sure if this is a good way to set this?
-	//should make sure not finalized here? maybe?
+	highestSRVIndex = max(highestSRVIndex, slot);
 }
 
 void Material::FinalizeMaterial()
@@ -23,7 +31,7 @@ void Material::FinalizeMaterial()
 
 	DX12Helper& dx12Helper = DX12Helper::GetInstance();
 
-	for (int i = 0; i < highestSRVIndex; i++)
+	for (int i = 0; i < highestSRVIndex + 1; i++)
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12Helper.CopySRVsToDescriptorHeapAndGetGPUDescriptorHandle(textureSRVsBySlot[i], 1);
 		

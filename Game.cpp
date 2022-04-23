@@ -83,10 +83,10 @@ void Game::Init()
 
 	Light directional = {};
 	directional.Type = LIGHT_TYPE_DIRECTIONAL;
-	directional.Direction = XMFLOAT3(3.0f, 3.0f, -3.0f);
-	directional.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
+	directional.Direction = XMFLOAT3(3.0f, 3.0f, 3.0f);
+	directional.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	directional.Range = 10.0f;
-	directional.Intensity = 1.0f;
+	directional.Intensity = 2.0f;
 
 	lights[0] = point;
 	lights[1] = directional;
@@ -365,10 +365,15 @@ void Game::CreateMaterials()
 	D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_metal.png").c_str());
 	D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_normals.png").c_str());
 	D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_roughness.png").c_str());
+	//
+	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
 
 	material = std::make_shared<Material>(
 		pipelineState,
-		DirectX::XMFLOAT4(),
+		DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		DirectX::XMFLOAT2(1.0f, 1.0f),
 		DirectX::XMFLOAT2(1.0f, 1.0f)
 		);
@@ -401,7 +406,7 @@ void Game::Update(float deltaTime, float totalTime)
 	
 	for (int i = 0; i < entities.size(); i++)
 	{
-		entities[i]->GetTransform()->Rotate(0.0f, 0.01f, 0.0f);
+		entities[i]->GetTransform()->Rotate(0.0f, 0.3f * deltaTime, 0.0f);
 	}
 
 	// Example input checking: Quit if the escape key is pressed
@@ -482,7 +487,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			// Pixel shader data and cbuffer setup
 			{
 				PixelShaderExternalData psData = {};
-				//psData.colorTint = mat-> GetColorTint();
+				psData.colorTint = mat-> GetColorTint();
 				psData.uvScale = mat-> GetUVScale();
 				psData.uvOffset = mat->GetUVOffset();
 				psData.cameraPosition = camera->GetTransform()->GetPosition();

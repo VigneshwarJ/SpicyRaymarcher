@@ -203,8 +203,8 @@ float3 DirLightPBR(Light light, float3 normal, float3 worldPos, float3 camPos, f
 	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
 
 	// Combine amount with 
+	//return (diff);
 	return (balancedDiff * surfaceColor + spec) * light.Intensity * light.Color;
-	//return (balancedDiff * surfaceColor + spec);
 }
 
 
