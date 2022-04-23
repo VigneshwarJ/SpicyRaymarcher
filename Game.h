@@ -41,8 +41,8 @@ private:
 	void LoadTextures();
 	void CreateMaterials();
 
-	//void RandomLighting();
-	//void CreateRandomPointLights(int count);
+	void RandomLighting();
+	Light RandomPointLight(float minRange, float maxRange, float minIntensity, float maxIntensity);
 
 
 	// Note the usage of ComPtr below

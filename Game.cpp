@@ -10,6 +10,9 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+// Helper macro for getting a float between min and max
+#define RandomRange(min, max) (float)rand() / RAND_MAX * (max - min) + min
+
 // Helper macros for making texture and shader loading code more succinct
 //#define LoadTexture(file, srv) CreateWICTextureFromFile(device.Get(), context.Get(), (assetsFolderPath_Wide + file).c_str(), 0, srv.GetAddressOf())
 //#define LoadShader(type, file) new type(device.Get(), context.Get(), filepath.c_str())
@@ -74,6 +77,7 @@ void Game::Init()
 	CreateEntities();
 	PlaceEntities();
 
+	//RandomLighting();
 	Light point = {};
 	point.Type = LIGHT_TYPE_POINT;
 	point.Position = XMFLOAT3(-5.0f, -5.0f, -5.0f);
@@ -89,8 +93,8 @@ void Game::Init()
 	directional.Intensity = 2.0f;
 
 	lights[0] = point;
-	lights[1] = directional;
-	lightCount = 2;
+	//lights[1] = directional;
+	lightCount = 1;
 
 
 	camera = std::make_shared<Camera>(
@@ -386,6 +390,32 @@ void Game::CreateMaterials()
 	material->FinalizeMaterial();
 }
 
+void Game::RandomLighting()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		lights[i] = RandomPointLight(
+			5.0f,
+			10.0f,
+			0.1f,
+			3.0f
+		);
+		lightCount = i + 1;
+	}
+
+}
+
+Light Game::RandomPointLight(float minRange, float maxRange, float minIntensity, float maxIntensity)
+{
+	Light point = {};
+	point.Type = LIGHT_TYPE_POINT;
+	point.Position = XMFLOAT3(RandomRange(-10.0f, 10.0f), RandomRange(-5.0f, 5.0f), RandomRange(-10.0f, 10.0f));
+	point.Color = XMFLOAT3(RandomRange(0, 1), RandomRange(0, 1), RandomRange(0, 1));
+	point.Range = RandomRange(minRange, maxRange);
+	point.Intensity = RandomRange(minIntensity, maxIntensity);
+
+	return point;
+}
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
