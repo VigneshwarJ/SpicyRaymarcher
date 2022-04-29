@@ -2,6 +2,12 @@
 #ifndef _LIGHTING_HLSL
 #define _LIGHTING_HLSL
 
+
+#define MAX_LIGHTS 128
+
+
+//#define MAX_SPECULAR_EXPONENT 256.0f
+
 #define LIGHT_TYPE_DIRECTIONAL	0
 #define LIGHT_TYPE_POINT		1
 #define LIGHT_TYPE_SPOT			2

@@ -77,24 +77,24 @@ void Game::Init()
 	CreateEntities();
 	PlaceEntities();
 
-	//RandomLighting();
-	Light point = {};
-	point.Type = LIGHT_TYPE_POINT;
-	point.Position = XMFLOAT3(-5.0f, -5.0f, -5.0f);
-	point.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
-	point.Range = 100.0f;
-	point.Intensity = 1.0f;
+	RandomLighting();
+	//Light point = {};
+	//point.Type = LIGHT_TYPE_POINT;
+	//point.Position = XMFLOAT3(-5.0f, -5.0f, -5.0f);
+	//point.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
+	//point.Range = 100.0f;
+	//point.Intensity = 1.0f;
 
-	Light directional = {};
-	directional.Type = LIGHT_TYPE_DIRECTIONAL;
-	directional.Direction = XMFLOAT3(3.0f, 3.0f, 3.0f);
-	directional.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	directional.Range = 10.0f;
-	directional.Intensity = 2.0f;
+	//Light directional = {};
+	//directional.Type = LIGHT_TYPE_DIRECTIONAL;
+	//directional.Direction = XMFLOAT3(3.0f, 3.0f, 3.0f);
+	//directional.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	//directional.Range = 10.0f;
+	//directional.Intensity = 2.0f;
 
-	lights[0] = point;
-	//lights[1] = directional;
-	lightCount = 1;
+	//lights.push_back(point);
+	////lights[1] = directional;
+	//lightCount = 1;
 
 
 	camera = std::make_shared<Camera>(
@@ -334,9 +334,9 @@ void Game::CreateBasicGeometry()
 void Game::CreateEntities()
 {
 	CreateMeshes();
-	entities.push_back(std::make_shared<GameEntity>(meshes[0], material, Transform()));
-	entities.push_back(std::make_shared<GameEntity>(meshes[1], material, Transform()));
-	entities.push_back(std::make_shared<GameEntity>(meshes[2], material, Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[0], materials[2], Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[1], materials[1], Transform()));
+	entities.push_back(std::make_shared<GameEntity>(meshes[2], materials[0], Transform()));
 }
 
 void Game::CreateMeshes()
@@ -369,7 +369,33 @@ void Game::CreateMaterials()
 	D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_metal.png").c_str());
 	D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_normals.png").c_str());
 	D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_roughness.png").c_str());
-	//
+	
+	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
+
+	std::shared_ptr<Material> material = std::make_shared<Material>(
+		pipelineState,
+		DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT2(1.0f, 1.0f),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+		);
+
+	material->AddTexture(albedo, 0);
+	material->AddTexture(metal, 1);
+	material->AddTexture(normals, 2);
+	material->AddTexture(roughness, 3);
+
+	material->FinalizeMaterial();
+
+	materials.push_back(material);
+
+	albedo =	DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
+	metal =		DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
+	normals =	DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
+	roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
+
 	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
 	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
 	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
@@ -388,21 +414,56 @@ void Game::CreateMaterials()
 	material->AddTexture(roughness, 3);
 
 	material->FinalizeMaterial();
+
+	materials.push_back(material);
+
+	albedo =	DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_albedo.tif").c_str());
+	metal =		DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_metalic.tif").c_str());
+	normals =	DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_normal.tif").c_str());
+	roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_roughness.tif").c_str());
+
+	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
+	//D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
+
+	material = std::make_shared<Material>(
+		pipelineState,
+		DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT2(1.0f, 1.0f),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+		);
+
+	material->AddTexture(albedo, 0);
+	material->AddTexture(metal, 1);
+	material->AddTexture(normals, 2);
+	material->AddTexture(roughness, 3);
+
+	material->FinalizeMaterial();
+
+	materials.push_back(material);
+
 }
 
 void Game::RandomLighting()
 {
-	for (int i = 0; i < 3; i++)
+	// Reset
+	lights.clear();
+	//for (int i = 0; i < MAX_LIGHTS; i++)
+	for (int i = 0; i < 83; i++)
 	{
-		lights[i] = RandomPointLight(
+		Light light = RandomPointLight(
 			5.0f,
 			10.0f,
 			0.1f,
 			3.0f
 		);
+		lights.push_back(light);
 		lightCount = i + 1;
 	}
 
+	// Make sure we're exactly MAX_LIGHTS big
+	//lights.resize(MAX_LIGHTS);
 }
 
 Light Game::RandomPointLight(float minRange, float maxRange, float minIntensity, float maxIntensity)
@@ -452,7 +513,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
 	// Grab the current back buffer for this frame
-		Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
+	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
 	// Clearing the render target
 	{
 		// Transition the back buffer from present to render target
@@ -510,9 +571,11 @@ void Game::Draw(float deltaTime, float totalTime)
 				externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
 				externalData.view = camera->GetView();
 				externalData.projection = camera->GetProjection();
-				D3D12_GPU_DESCRIPTOR_HANDLE handle = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(&externalData, sizeof(externalData));
 
-				commandList->SetGraphicsRootDescriptorTable(0, handle);
+				//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
+
+				commandList->SetGraphicsRootDescriptorTable(0, handleVS);
 			}
 			// Pixel shader data and cbuffer setup
 			{
@@ -522,7 +585,7 @@ void Game::Draw(float deltaTime, float totalTime)
 				psData.uvOffset = mat->GetUVOffset();
 				psData.cameraPosition = camera->GetTransform()->GetPosition();
 				psData.lightCount = lightCount;
-				memcpy(psData.lights, &lights[0], sizeof(Light) * lightCount);
+				memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
 				// Send this to a chunk of the constant buffer heap
 				// and grab the GPU handle for it so we can set it for this draw
 				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =

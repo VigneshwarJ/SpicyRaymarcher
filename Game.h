@@ -61,9 +61,12 @@ private:
 	std::shared_ptr<Camera> camera;
 	std::vector<std::shared_ptr<GameEntity>> entities;
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	std::shared_ptr<Material> material;
+	//std::shared_ptr<Material> material;
+	std::vector<std::shared_ptr<Material>> materials;
 
-	Light lights[128];
+	//Light lights[128];
+
+	std::vector<Light> lights;
 	int lightCount;
 	
 };
