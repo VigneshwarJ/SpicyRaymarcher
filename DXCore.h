@@ -61,12 +61,12 @@ protected:
 	bool hasFocus;
 
 	// DirectX related objects and variables
-	static const unsigned int numBackBuffers = 2;
+	static const unsigned int numBackBuffers = 3;
 	unsigned int currentSwapBuffer;
 	D3D_FEATURE_LEVEL dxFeatureLevel;
 	Microsoft::WRL::ComPtr<ID3D12Device> device;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[numBackBuffers];
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList;
 	unsigned int rtvDescriptorSize;
@@ -88,6 +88,7 @@ protected:
 
 	std::string GetFullPathTo(std::string relativeFilePath);
 	std::wstring GetFullPathTo_Wide(std::wstring relativeFilePath);
+
 
 
 private:

@@ -38,15 +38,18 @@ public:
 		Microsoft::WRL::ComPtr<ID3D12Device> device,
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList,
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator);
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>* commandAllocators,
+		unsigned int numBackBuffers);
 	// Resource creation
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateStaticBuffer(
 		unsigned int dataStride,
 		unsigned int dataCount,
 		void* data);
 	// Command list & synchronization
-	void CloseExecuteAndResetCommandList();
+	void CloseAndExecuteCommandList();
 	void WaitForGPU();
+	unsigned int SyncSwapChain(unsigned int currentSwapBufferIndex);
+
 
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetCBVSRVDescriptorHeap();
 	D3D12_GPU_DESCRIPTOR_HANDLE FillNextConstantBufferAndGetGPUDescriptorHandle(
@@ -58,6 +61,8 @@ public:
 		D3D12_CPU_DESCRIPTOR_HANDLE firstDescriptorToCopy,
 		unsigned int numDescriptorsToCopy);
 private:
+
+
 	// Maximum number of constant buffers, assuming each buffer
 	// is 256 bytes or less. Larger buffers are fine, but will
 	// result in fewer buffers in use at any time
@@ -82,11 +87,17 @@ private:
 	// complex engines but should be fine for now
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator>* commandAllocators;
 	// Basic CPU/GPU synchronization
 	Microsoft::WRL::ComPtr<ID3D12Fence> waitFence;
 	HANDLE waitFenceEvent;
 	unsigned long waitFenceCounter;
+
+	//frame sync
+	unsigned int numBackBuffers;
+	Microsoft::WRL::ComPtr<ID3D12Fence> frameSyncFence;
+	HANDLE	frameSyncFenceEvent;
+	UINT64* frameSyncFenceCounters;
 
 	// Maximum number of texture descriptors (SRVs) we can have.
 	// Each material will have a chunk of this,

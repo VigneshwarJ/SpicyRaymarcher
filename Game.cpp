@@ -77,31 +77,34 @@ void Game::Init()
 	CreateEntities();
 	PlaceEntities();
 
-	RandomLighting();
-	//Light point = {};
-	//point.Type = LIGHT_TYPE_POINT;
-	//point.Position = XMFLOAT3(-5.0f, -5.0f, -5.0f);
-	//point.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
-	//point.Range = 100.0f;
-	//point.Intensity = 1.0f;
+	//RandomLighting();
+	Light point = {};
+	point.Type = LIGHT_TYPE_POINT;
+	point.Position = XMFLOAT3(-5.0f, -5.0f, -5.0f);
+	point.Color = XMFLOAT3(0.5f, 0.5f, 0.0f);
+	point.Range = 100.0f;
+	point.Intensity = 1.0f;
 
-	//Light directional = {};
-	//directional.Type = LIGHT_TYPE_DIRECTIONAL;
-	//directional.Direction = XMFLOAT3(3.0f, 3.0f, 3.0f);
-	//directional.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	//directional.Range = 10.0f;
-	//directional.Intensity = 2.0f;
+	Light directional = {};
+	directional.Type = LIGHT_TYPE_DIRECTIONAL;
+	directional.Direction = XMFLOAT3(3.0f, 3.0f, 3.0f);
+	directional.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	directional.Range = 10.0f;
+	directional.Intensity = 2.0f;
 
-	//lights.push_back(point);
-	////lights[1] = directional;
-	//lightCount = 1;
+	lights.push_back(point);
+	lights.push_back(directional);
+	lightCount = 2;
 
 
 	camera = std::make_shared<Camera>(
-		0.0f, 0.0f, -10.0f,	// Position
+		0.0f, 0.0f, -5.0f,	// Position
 		3.0f,		// Move speed
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
+
+		// Ensure the command list is closed going into Draw for the first time
+	commandList->Close();
 }
 
 // --------------------------------------------------------
@@ -450,12 +453,12 @@ void Game::RandomLighting()
 	// Reset
 	lights.clear();
 	//for (int i = 0; i < MAX_LIGHTS; i++)
-	for (int i = 0; i < 83; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		Light light = RandomPointLight(
 			5.0f,
 			10.0f,
-			0.1f,
+			2.0f,
 			3.0f
 		);
 		lights.push_back(light);
@@ -512,6 +515,10 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
+	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
+	commandAllocators[currentSwapBuffer]->Reset();
+	commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
+
 	// Grab the current back buffer for this frame
 	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
 	// Clearing the render target
@@ -553,6 +560,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		commandList->RSSetScissorRects(1, &scissorRect);
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
+		//constant buffer setup
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
 			dx12HelperInst.GetCBVSRVDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
@@ -629,12 +637,14 @@ void Game::Draw(float deltaTime, float totalTime)
 		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		commandList->ResourceBarrier(1, &rb);
 		// Must occur BEFORE present
-		dx12HelperInst.CloseExecuteAndResetCommandList();
+		//dx12HelperInst.CloseAndExecuteCommandList();
+		dx12HelperInst.CloseAndExecuteCommandList();
 		// Present the current back buffer
 		swapChain->Present(vsync ? 1 : 0, 0);
-		// Figure out which buffer is next
-		currentSwapBuffer++;
-		if (currentSwapBuffer >= numBackBuffers)
-			currentSwapBuffer = 0;
+		//// Figure out which buffer is next
+		//currentSwapBuffer++;
+		//if (currentSwapBuffer >= numBackBuffers)
+		//	currentSwapBuffer = 0;
+		currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
 	}
 }
