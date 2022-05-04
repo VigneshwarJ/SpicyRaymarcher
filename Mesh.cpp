@@ -176,10 +176,11 @@ Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D12Device> device)
 	obj.close();
 
 	//make buffers with the dx12 helper singleton
-	DX12Helper& dx12Helper = DX12Helper::GetInstance();
-	vb = dx12Helper.CreateStaticBuffer(sizeof(Vertex), verts.size(), &verts[0]);
-	ib = dx12Helper.CreateStaticBuffer(sizeof(unsigned int), indices.size(), &indices[0]);
+	numVertices = verts.size();
 	numIndices = indices.size();
+	DX12Helper& dx12Helper = DX12Helper::GetInstance();
+	vb = dx12Helper.CreateStaticBuffer(sizeof(Vertex), numVertices, &verts[0]);
+	ib = dx12Helper.CreateStaticBuffer(sizeof(unsigned int), numIndices, &indices[0]);
 
 	//set up buffer views
 	vbView.StrideInBytes = sizeof(Vertex);

@@ -16,6 +16,7 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12Resource> GetVertexBuffer() { return vb; }
 	Microsoft::WRL::ComPtr<ID3D12Resource> GetIndexBuffer() { return ib; }
 	int GetIndexCount() { return numIndices; }
+	int GetVertexCount() { return numIndices; }
 
 	void SetBuffersAndDraw(Microsoft::WRL::ComPtr<ID3D12Resource> context);
 
@@ -26,6 +27,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> vb;
 	Microsoft::WRL::ComPtr<ID3D12Resource> ib;
 	int numIndices;
+	int numVertices;
 
 	D3D12_VERTEX_BUFFER_VIEW vbView;
 	D3D12_INDEX_BUFFER_VIEW ibView;
