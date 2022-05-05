@@ -40,6 +40,9 @@ private:
 	void PlaceEntities();
 	void LoadTextures();
 	void CreateMaterials();
+	
+	//for raytracing
+	void CreateAccelerationStructures();
 
 	void RandomLighting();
 	Light RandomPointLight(float minRange, float maxRange, float minIntensity, float maxIntensity);
