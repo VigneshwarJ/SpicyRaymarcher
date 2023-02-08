@@ -71,6 +71,8 @@ private:
 
 	std::vector<Light> lights;
 	int lightCount;
+
+	bool raytracing;
 	
 };
 
