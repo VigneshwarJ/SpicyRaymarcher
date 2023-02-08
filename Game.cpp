@@ -125,7 +125,7 @@ void Game::Init()
 		// Ensure the command list is closed going into Draw for the first time
 	commandList->Close();
 
-	raytracing = true;
+	raytracing = false;
 }
 
 // --------------------------------------------------------
