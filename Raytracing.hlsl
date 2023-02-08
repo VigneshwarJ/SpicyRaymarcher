@@ -46,6 +46,16 @@ RaytracingAccelerationStructure SceneTLAS : register(t0);
 ByteAddressBuffer IndexBuffer        		: register(t1);
 ByteAddressBuffer VertexBuffer				: register(t2);
 
+// Texture-related variables
+TextureCube skyTexture		: register(t3);
+//Texture2D AlbedoTexture			: register(t3);
+//Texture2D MetalTexture			: register(t4);
+//Texture2D NormalTexture			: register(t5);
+//Texture2D RoughnessTexture		: register(t6);
+
+
+SamplerState BasicSampler		: register(s0);
+
 //----HELPERS----
 
 // Loads the indices of the specified triangle from the index buffer
@@ -184,6 +194,13 @@ void ClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttributes 
 
 	// Get the interpolated vertex data
 	Vertex interpolatedVert = InterpolateVertices(triangleIndex, barycentricData);
+
+	//----
+	//float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, interpolatedVert.uv);
+	//surfaceColor.rgb = pow(surfaceColor.rgb, 2.2);
+
+
+	//----
 
 	// Use the resulting data to set the final color
 	// Note: Here is where we would do actual shading!
