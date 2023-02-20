@@ -4,6 +4,8 @@
 
 #include <WindowsX.h>
 #include <sstream>
+#include <imgui.h>
+
 
 // Define the static instance variable so our OS-level 
 // message handling function below can talk to our object
@@ -34,7 +36,8 @@ DXCore::DXCore(
 	const char* titleBarText,	// Text for the window's title bar
 	unsigned int windowWidth,	// Width of the window's client area
 	unsigned int windowHeight,	// Height of the window's client area
-	bool debugTitleBarStats)	// Show extra stats (fps) in title bar?
+	bool debugTitleBarStats):
+	srvHeap(nullptr)	// Show extra stats (fps) in title bar?
 {
 	// Save a static reference to this object.
 	//  - Since the OS-level message function must be a non-member (global) function, 
@@ -80,6 +83,24 @@ DXCore::~DXCore()
 	delete& DX12Helper::GetInstance();
 }
 
+void DXCore::InitializeImGui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::StyleColorsDark();
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	desc.NumDescriptors = 1;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	if (device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&srvHeap)) != S_OK)
+		return;
+	ImGui_ImplWin32_Init(hWnd);
+	ImGui_ImplDX12_Init(device.Get(), 3,
+		DXGI_FORMAT_R8G8B8A8_UNORM, srvHeap,
+		srvHeap->GetCPUDescriptorHandleForHeapStart(),
+		srvHeap->GetGPUDescriptorHandleForHeapStart());
+}
 // --------------------------------------------------------
 // Created the actual window for our application
 // --------------------------------------------------------
@@ -159,6 +180,8 @@ HRESULT DXCore::InitWindow()
 	// Return an "everything is ok" HRESULT value
 	return S_OK;
 }
+
+
 
 void GetHardwareAdapter(
 	IDXGIFactory1* pFactory,
@@ -562,18 +585,22 @@ HRESULT DXCore::Run()
 			if(titleBarStats)
 				UpdateTitleBarStats();
 
+			
 			// Update the input manager
 			Input::GetInstance().Update();
 
 			// The game loop
 			Update(deltaTime, totalTime);
 			Draw(deltaTime, totalTime);
+			
 
 			// Frame is over, notify the input manager
 			Input::GetInstance().EndOfFrame();
 		}
 	}
-
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 	// We'll end up here once we get a WM_QUIT message,
 	// which usually comes from the user closing the window
 	return (HRESULT)msg.wParam;
@@ -586,6 +613,9 @@ HRESULT DXCore::Run()
 // --------------------------------------------------------
 void DXCore::Quit()
 {
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 	PostMessage(this->hWnd, WM_CLOSE, NULL, NULL);
 }
 

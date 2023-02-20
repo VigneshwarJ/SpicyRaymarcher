@@ -125,7 +125,7 @@ void Game::Init()
 		// Ensure the command list is closed going into Draw for the first time
 	commandList->Close();
 
-	raytracing = true;
+	raytracing = false;
 }
 
 // --------------------------------------------------------
@@ -549,10 +549,28 @@ void Game::Draw(float deltaTime, float totalTime)
 	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
 	commandAllocators[currentSwapBuffer]->Reset();
 	commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
-
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 	// Grab the current back buffer for this frame
 	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
+	{
+		static float f = 0.0f;
+		static int counter = 0;
 
+		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+		ImGui::Checkbox("Raytracing", &raytracing);      // Edit bools storing our window open/close state
+		
+		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
 	if (!raytracing)
 	{
 		// Clearing the render target
@@ -659,6 +677,11 @@ void Game::Draw(float deltaTime, float totalTime)
 
 			//Present
 			{
+				ImGui::Render();
+
+				commandList->SetDescriptorHeaps(1, &srvHeap);
+				ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
+
 				// Transition back to present
 				D3D12_RESOURCE_BARRIER rb = {};
 				rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -668,6 +691,7 @@ void Game::Draw(float deltaTime, float totalTime)
 				rb.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 				rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 				commandList->ResourceBarrier(1, &rb);
+
 				// Must occur BEFORE present
 				dx12HelperInst.CloseAndExecuteCommandList();
 				// Present the current back buffer
@@ -682,7 +706,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 	else
 	{
+		ImGui::Render();
 
+		commandList->SetDescriptorHeaps(1, &srvHeap);
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
+		// Must occur BEFORE present
 		// RAYTRACING HERE
 		RaytracingHelper::GetInstance().Raytrace(camera, backBuffers[currentSwapBuffer], currentSwapBuffer);
 

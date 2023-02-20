@@ -1,5 +1,7 @@
 #pragma once
-
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx12.h"
 #include <Windows.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -37,6 +39,7 @@ public:
 	// Initialization and game-loop related methods
 	HRESULT InitWindow();
 	HRESULT InitDirectX();
+	void InitializeImGui();
 	HRESULT Run();
 	void Quit();
 	virtual void OnResize();
@@ -72,6 +75,7 @@ protected:
 	unsigned int rtvDescriptorSize;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
+	ID3D12DescriptorHeap* srvHeap;
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[numBackBuffers];
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	Microsoft::WRL::ComPtr<ID3D12Resource> backBuffers[numBackBuffers];
