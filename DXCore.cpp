@@ -181,7 +181,13 @@ HRESULT DXCore::InitWindow()
 	return S_OK;
 }
 
+void DXCore::renderImGui()
+{
+	ImGui::Render();
 
+	commandList->SetDescriptorHeaps(1, &srvHeap);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
+}
 
 void GetHardwareAdapter(
 	IDXGIFactory1* pFactory,

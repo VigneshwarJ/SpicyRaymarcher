@@ -40,6 +40,7 @@ public:
 	HRESULT InitWindow();
 	HRESULT InitDirectX();
 	void InitializeImGui();
+	void renderImGui();
 	HRESULT Run();
 	void Quit();
 	virtual void OnResize();
