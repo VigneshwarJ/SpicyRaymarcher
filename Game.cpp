@@ -63,6 +63,7 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	InitSDFRenderer();
 
 
 	// Attempt to initialize DXR
@@ -84,9 +85,6 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	//CreateRootSigAndPipelineState(); //this is the non-sdf one
-	
-	InitSDFRenderer();
-
 	CreateBasicGeometry();
 
 	CreateMaterials();
