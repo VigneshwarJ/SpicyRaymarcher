@@ -36,6 +36,7 @@ private:
 	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
 	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
 	void InitSDFRenderer();
+	void RenderSDF();
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void CreateRootSigAndPipelineState();
