@@ -166,30 +166,30 @@ void Game::InitSDFRenderer() //Resorting to the nuclear option: this function wi
 	//	);
 
 	// Input layout
-	const unsigned int inputElementCount = 1;
+	const unsigned int inputElementCount = 4;
 	D3D12_INPUT_ELEMENT_DESC inputElements[inputElementCount] = {};
 	{		
-		inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		inputElements[0].SemanticName = "SV_VertexID"; // Name must match semantic in shader
-		inputElements[0].SemanticIndex = 0; // This is the first semantic of this type
-
 		//inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 		//inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		//inputElements[0].SemanticName = "POSITION"; // Name must match semantic in shader
-		//inputElements[0].SemanticIndex = 0; // This is the first POSITION semantic
-		//inputElements[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT; // R32 G32 = float2
-		//inputElements[1].SemanticName = "TEXCOORD";
-		//inputElements[1].SemanticIndex = 0; // This is the first TEXCOORD semantic
-		//inputElements[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		//inputElements[2].SemanticName = "NORMAL";
-		//inputElements[2].SemanticIndex = 0; // This is the first NORMAL semantic
-		//inputElements[3].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[3].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		//inputElements[3].SemanticName = "TANGENT";
-		//inputElements[3].SemanticIndex = 0; // This is the first TANGENT semantic
+		//inputElements[0].SemanticName = "SV_VertexID"; // Name must match semantic in shader
+		//inputElements[0].SemanticIndex = 0; // This is the first semantic of this type
+
+		inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
+		inputElements[0].SemanticName = "POSITION"; // Name must match semantic in shader
+		inputElements[0].SemanticIndex = 0; // This is the first POSITION semantic
+		inputElements[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT; // R32 G32 = float2
+		inputElements[1].SemanticName = "TEXCOORD";
+		inputElements[1].SemanticIndex = 0; // This is the first TEXCOORD semantic
+		inputElements[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
+		inputElements[2].SemanticName = "NORMAL";
+		inputElements[2].SemanticIndex = 0; // This is the first NORMAL semantic
+		inputElements[3].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		inputElements[3].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
+		inputElements[3].SemanticName = "TANGENT";
+		inputElements[3].SemanticIndex = 0; // This is the first TANGENT semantic
 	}
 	// Root Signature
 	{
@@ -394,10 +394,10 @@ void Game::RenderSDF()
 				RaymarchVSExternalData externalData = {};
 
 				//may need something analogous to these later once we set up SDF class
-				//externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
-				//externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
-				//externalData.view = camera->GetView();
-				//externalData.projection = camera->GetProjection();
+				externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
+				externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
+				externalData.view = camera->GetView();
+				externalData.projection = camera->GetProjection();
 
 				//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
