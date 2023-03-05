@@ -13,13 +13,13 @@ struct VertexShaderExternalData
 
 struct PixelShaderExternalData
 {
-	DirectX::XMFLOAT3 cameraPosition;
-	DirectX::XMFLOAT3 cameraForward;
-	DirectX::XMFLOAT3 cameraRight;
-	DirectX::XMFLOAT3 cameraUp;
-	DirectX::XMFLOAT3 bgColor;
-	DirectX::XMFLOAT3 lightPosition;
-	DirectX::XMFLOAT3 spherePosition;
+	DirectX::XMFLOAT3A cameraPosition;
+	DirectX::XMFLOAT3A cameraForward;
+	DirectX::XMFLOAT3A cameraRight;
+	DirectX::XMFLOAT3A cameraUp;
+	DirectX::XMFLOAT3A bgColor;
+	DirectX::XMFLOAT3A lightPosition;
+	DirectX::XMFLOAT3A spherePosition;
 	DirectX::XMFLOAT4 sphereColor;
 	float  sphereRadius;
 };

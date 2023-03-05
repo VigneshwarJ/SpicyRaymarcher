@@ -13,8 +13,8 @@ cbuffer ExternalData : register(b0)
     float3 bgColor; // bg color not working
     float3 lightPosition;
     float3 spherePosition;
-    float  sphereRadius;
     float4 sphereColor;
+    float  sphereRadius;
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -32,7 +32,6 @@ struct VertexToPixel
 
 	float4 position		: SV_POSITION;
 	float2 uv           : TEXCOORD0;
-	float4x4 viewMatrix     : VIEW_MAT;
 };
 
 
@@ -61,18 +60,18 @@ float3 calculateNormal(float3 position, float3 spherePosition) {
 }
 
 float3 calculateLighting(float3 position, float3 normal) {
-    float3 lightPosition = float3(0, 10, 0);
+    //float3 lightPosition = float3(0, 10, 0);
     float3 toLight = normalize(lightPosition - position);
     float diffuse = max(0.0, dot(normal, toLight));
     float3 ambient = 0.1;
-    float3 diffuseColor = 1.0;
+    float3 diffuseColor = sphereColor.xyz;
     return ambient + diffuseColor * diffuse;
     //return  diffuseColor;
 }
 
 float4 main(VertexToPixel input) : SV_Target{
-    float3 spherePosition = float3(0.0f, 0.0f, 5.0f);
-    float sphereRadius = 5.0f;
+    //float3 spherePosition = float3(0.0f, 0.0f, 5.0f);
+    //float sphereRadius = 5.0f;
     //float2 screenPosition = input.uv ;
     float2 ps = float2(1280, 720);
     float2 ratio = (ps.x > ps.y) ? float2(ps.y / ps.x, 1) : float2(1, ps.x / ps.y);

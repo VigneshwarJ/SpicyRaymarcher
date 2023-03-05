@@ -10,7 +10,7 @@ Camera::Camera(float x, float y, float z, float moveSpeed, float mouseLookSpeed,
 	this->movementSpeed = moveSpeed;
 	this->mouseLookSpeed = mouseLookSpeed;
 	transform.SetPosition(x, y, z);
-	transform.SetRotation(-0.223811 ,- 4.77216 ,0);
+	transform.SetRotation(0 ,-3.15 ,0);
 	UpdateViewMatrix();
 	UpdateProjectionMatrix(aspectRatio);
 }

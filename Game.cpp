@@ -117,7 +117,7 @@ void Game::Init()
 
 
 	camera = std::make_shared<Camera>(
-		0.0f, 0.0f, -5.0f,	// Position
+		0.0f, 0.0f, -12.0f,	// Position
 		3.0f,		// Move speed
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
@@ -326,7 +326,9 @@ void Game::InitSDFRenderer() //Resorting to the nuclear option: this function wi
 void Game::RenderSDF()
 {
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
-
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
 	commandAllocators[currentSwapBuffer]->Reset();
 	commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
@@ -364,13 +366,11 @@ void Game::RenderSDF()
 			0, // Not clearing stencil, but need a value
 			0, 0); // No scissor rects
 	}
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
+	
 	float color[4] = { 1.0f,1.0f,1.0f,1.0f };
 	float sphereSize =5.0f;
-	float lightPos[] = { 0.0, 10.0 , 0.0 };
-	float spherePos[] = { 0.0, 0.0 , 5.0};
+	float lightPos[] = { 0.0, -10.0 , 0.0 };
+	float spherePos[] = { 0.0, 0.0 , 7.0};
 	{
 		static float f = 0.0f;
 		static int counter = 0;
@@ -431,16 +431,16 @@ void Game::RenderSDF()
 			// Pixel shader data and cbuffer setup
 			{
 				PixelShaderExternalData psData = {};
-
-				psData.cameraPosition = camera->GetTransform()->GetPosition();
+				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
+				psData.cameraPosition = XMFLOAT3A(pos.x,pos.y ,pos.z);
 				XMStoreFloat3(&(psData.cameraForward), camera->getForward());
 				XMStoreFloat3(&(psData.cameraRight), camera->getRight());
 				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
-				psData.bgColor = XMFLOAT3(1.0f, 1.0f, 0.0f);
-				psData.sphereColor = XMFLOAT4(color);
-				psData.lightPosition = XMFLOAT3(lightPos);
+				psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
+				psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);
+				psData.lightPosition = XMFLOAT3A(lightPos);
 				psData.sphereRadius = sphereSize;
-				psData.spherePosition = XMFLOAT3(spherePos);
+				psData.spherePosition = XMFLOAT3A(spherePos);
 
 
 				//// Send this to a chunk of the constant buffer heap
