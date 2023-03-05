@@ -13,12 +13,15 @@ struct VertexShaderExternalData
 
 struct PixelShaderExternalData
 {
-	DirectX::XMFLOAT4 colorTint;
-	DirectX::XMFLOAT2 uvScale;
-	DirectX::XMFLOAT2 uvOffset;
 	DirectX::XMFLOAT3 cameraPosition;
-	int lightCount;
-	Light lights[MAX_LIGHTS];
+	DirectX::XMFLOAT3 cameraForward;
+	DirectX::XMFLOAT3 cameraRight;
+	DirectX::XMFLOAT3 cameraUp;
+	DirectX::XMFLOAT3 bgColor;
+	DirectX::XMFLOAT3 lightPosition;
+	DirectX::XMFLOAT3 spherePosition;
+	DirectX::XMFLOAT4 sphereColor;
+	float  sphereRadius;
 };
 
 // Overall scene data for raytracing

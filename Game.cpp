@@ -168,7 +168,7 @@ void Game::InitSDFRenderer() //Resorting to the nuclear option: this function wi
 	// Input layout
 	const unsigned int inputElementCount = 1;
 	D3D12_INPUT_ELEMENT_DESC inputElements[inputElementCount] = {};
-	{		
+	{
 		inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
 		inputElements[0].SemanticName = "SV_VertexID"; // Name must match semantic in shader
@@ -364,6 +364,35 @@ void Game::RenderSDF()
 			0, // Not clearing stencil, but need a value
 			0, 0); // No scissor rects
 	}
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	float color[4] = { 1.0f,1.0f,1.0f,1.0f };
+	float sphereSize =5.0f;
+	float lightPos[] = { 0.0, 10.0 , 0.0 };
+	float spherePos[] = { 0.0, 0.0 , 5.0};
+	{
+		static float f = 0.0f;
+		static int counter = 0;
+
+		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+		
+		ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
+		
+		ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
+		ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
+		
+		ImGui::ColorEdit3("color", color);
+		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
+
 
 
 	// Rendering here!
@@ -389,39 +418,40 @@ void Game::RenderSDF()
 			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
 
 			commandList->SetPipelineState(mat->GetPipelineState().Get());
-			//vert shader setup
 			{
-				RaymarchVSExternalData externalData = {};
+				VertexShaderExternalData externalData = {};
+				externalData.view = camera->GetView();
+				externalData.projection = camera->GetProjection();
 
-				//may need something analogous to these later once we set up SDF class
-				//externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
-				//externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
-				//externalData.view = camera->GetView();
-				//externalData.projection = camera->GetProjection();
-
-				//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+				//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
 				commandList->SetGraphicsRootDescriptorTable(0, handleVS);
 			}
 			// Pixel shader data and cbuffer setup
 			{
-				RaymarchPSExternalData psData = {};
-				psData.colorTint = mat->GetColorTint();
-				psData.uvScale = mat->GetUVScale();
-				psData.uvOffset = mat->GetUVOffset();
-				psData.cameraPosition = camera->GetTransform()->GetPosition(); //DEFINITELY need a camera position
-				psData.lightCount = lightCount;
-				memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
-				// Send this to a chunk of the constant buffer heap
-				// and grab the GPU handle for it so we can set it for this draw
+				PixelShaderExternalData psData = {};
+
+				psData.cameraPosition = camera->GetTransform()->GetPosition();
+				XMStoreFloat3(&(psData.cameraForward), camera->getForward());
+				XMStoreFloat3(&(psData.cameraRight), camera->getRight());
+				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
+				psData.bgColor = XMFLOAT3(1.0f, 1.0f, 0.0f);
+				psData.sphereColor = XMFLOAT4(color);
+				psData.lightPosition = XMFLOAT3(lightPos);
+				psData.sphereRadius = sphereSize;
+				psData.spherePosition = XMFLOAT3(spherePos);
+
+
+				//// Send this to a chunk of the constant buffer heap
+				//// and grab the GPU handle for it so we can set it for this draw
 				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
 					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
 						(void*)(&psData), sizeof(PixelShaderExternalData));
-				// Set this constant buffer handle
-				// Note: This assumes that descriptor table 1 is the
-				// place to put this particular descriptor. This
-				// is based on how we set up our root signature.
+				//// Set this constant buffer handle
+				//// Note: This assumes that descriptor table 1 is the
+				//// place to put this particular descriptor. This
+				//// is based on how we set up our root signature.
 				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
 			}
 
@@ -439,8 +469,9 @@ void Game::RenderSDF()
 
 			// Call DrawIndexedInstanced() using the index count of this entity's mesh
 			commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-		//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
+			//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
 		}
+		renderImGui();
 		//Present
 		{
 
@@ -885,7 +916,7 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	RenderSDF();
 	//sdfRenderer->Render();
-	//DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
+	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
 	////reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
 	//commandAllocators[currentSwapBuffer]->Reset();
@@ -961,16 +992,16 @@ void Game::Draw(float deltaTime, float totalTime)
 	//		std::shared_ptr<GameEntity> thisEntity = entities[i];
 	//		std::shared_ptr<Material> mat = thisEntity->GetMaterial();
 
-	//		commandList->SetPipelineState(mat->GetPipelineState().Get());
+			//commandList->SetPipelineState(mat->GetPipelineState().Get());
 	//		//vert shader setup
 	//		{
 	//			VertexShaderExternalData externalData = {};
-	//			externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
-	//			externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
+	//			//externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
+	//			//externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
 	//			externalData.view = camera->GetView();
 	//			externalData.projection = camera->GetProjection();
 
-	//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+	////			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 	//			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
 	//			commandList->SetGraphicsRootDescriptorTable(0, handleVS);
@@ -978,21 +1009,25 @@ void Game::Draw(float deltaTime, float totalTime)
 	//		// Pixel shader data and cbuffer setup
 	//		{
 	//			PixelShaderExternalData psData = {};
-	//			psData.colorTint = mat->GetColorTint();
-	//			psData.uvScale = mat->GetUVScale();
-	//			psData.uvOffset = mat->GetUVOffset();
+	//			//psData.colorTint = mat->GetColorTint();
+	//			//psData.uvScale = mat->GetUVScale();
+	//			//psData.uvOffset = mat->GetUVOffset();
 	//			psData.cameraPosition = camera->GetTransform()->GetPosition();
-	//			psData.lightCount = lightCount;
-	//			memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
-	//			// Send this to a chunk of the constant buffer heap
-	//			// and grab the GPU handle for it so we can set it for this draw
+	//			XMStoreFloat3(&(psData.cameraForward), camera->getForward());
+	//			XMStoreFloat3(&(psData.cameraRight), camera->getRight());
+	//			XMStoreFloat3(&(psData.cameraUp), camera->getUp());
+	//			psData.bgColor = XMFLOAT3(1.0f, 1.0f, 0.0f);
+	//			//psData.lightCount = lightCount;
+	//			//memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
+	//			//// Send this to a chunk of the constant buffer heap
+	//			//// and grab the GPU handle for it so we can set it for this draw
 	//			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
 	//				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
 	//					(void*)(&psData), sizeof(PixelShaderExternalData));
-	//			// Set this constant buffer handle
-	//			// Note: This assumes that descriptor table 1 is the
-	//			// place to put this particular descriptor. This
-	//			// is based on how we set up our root signature.
+	//			//// Set this constant buffer handle
+	//			//// Note: This assumes that descriptor table 1 is the
+	//			//// place to put this particular descriptor. This
+	//			//// is based on how we set up our root signature.
 	//			commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
 	//		}
 

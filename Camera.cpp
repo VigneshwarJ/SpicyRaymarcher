@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "Input.h"
+#include <iostream>
 
 using namespace DirectX;
 
@@ -9,7 +10,7 @@ Camera::Camera(float x, float y, float z, float moveSpeed, float mouseLookSpeed,
 	this->movementSpeed = moveSpeed;
 	this->mouseLookSpeed = mouseLookSpeed;
 	transform.SetPosition(x, y, z);
-
+	transform.SetRotation(-0.223811 ,- 4.77216 ,0);
 	UpdateViewMatrix();
 	UpdateProjectionMatrix(aspectRatio);
 }
@@ -39,6 +40,16 @@ void Camera::Update(float dt)
 	if (input.KeyDown('D')) { transform.MoveRelative(speed, 0, 0); }
 	if (input.KeyDown('X')) { transform.MoveAbsolute(0, -speed, 0); }
 	if (input.KeyDown(' ')) { transform.MoveAbsolute(0, speed, 0); }
+	if (input.KeyDown('P')) { std::cout<< "CPos " <<transform.GetPosition().x << " "
+		<< transform.GetPosition().y << " "
+	<< transform.GetPosition().z << std::endl;
+	std::cout << "roll pitch yaw " << transform.GetPitchYawRoll().x << " "
+		<< transform.GetPitchYawRoll().y << " "
+		<< transform.GetPitchYawRoll().z << std::endl;
+	std::cout << "Cup " << transform.GetPosition().x << " "
+		<< transform.GetPosition().y << " "
+		<< transform.GetPosition().z << std::endl;
+	}
 
 	// Handle mouse movement only when button is down
 	if (input.MouseLeftDown())
@@ -54,17 +65,52 @@ void Camera::Update(float dt)
 
 }
 
+DirectX::XMVECTOR Camera::getDirection()  noexcept
+{
+	XMFLOAT3 rot = transform.GetPitchYawRoll();
+	XMFLOAT3 pos = transform.GetPosition();
+	// camDirection = camPosition - camTarget
+	const XMVECTOR forwardVector{ 0.0f, 0.0f, 1.0f, 0.0f };
+	const auto lookVector = XMVector3Transform(forwardVector,
+		XMMatrixRotationRollPitchYaw(rot.x, rot.y,0));
+	const auto camPosition = XMLoadFloat3(&pos);
+	const auto camTarget = XMVectorAdd(camPosition,
+		lookVector);
+	return XMVector3Normalize(XMVectorSubtract(camPosition,
+		camTarget));
+}
+
+
+
+DirectX::XMVECTOR Camera::getForward() const noexcept
+{
+	return XMVector3Cross(getRight(),
+		getUp());
+}
+DirectX::XMVECTOR Camera::getRight() const noexcept
+{
+	const XMVECTOR upVector{ 0.0f, 1.0f, 0.0f, 0.0f };
+	return XMVector3Cross(upVector,
+		direction);
+}
+
+DirectX::XMVECTOR Camera::getUp() const noexcept
+{
+	return XMVector3Cross(direction,
+		getRight());
+}
 // Creates a new view matrix based on current position and orientation
 void Camera::UpdateViewMatrix()
 {
 	// Rotate the standard "forward" matrix by our rotation
 	// This gives us our "look direction"
-	XMFLOAT3 rot = transform.GetPitchYawRoll();
-	XMVECTOR dir = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rot)));
+	//XMFLOAT3 rot = transform.GetPitchYawRoll();
+	//direction = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rot)));
+	direction = Camera::getDirection();
 	XMFLOAT3 pos = transform.GetPosition();
 	XMMATRIX view = XMMatrixLookToLH(
 		XMLoadFloat3(&pos),
-		dir,
+		direction,
 		XMVectorSet(0, 1, 0, 0));
 
 	XMStoreFloat4x4(&viewMatrix, view);
