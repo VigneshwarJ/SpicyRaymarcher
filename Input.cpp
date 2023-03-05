@@ -1,4 +1,5 @@
 #include "Input.h"
+#include <imgui_impl_dx12.h>
 
 // Singleton requirement
 Input* Input::instance;
@@ -94,6 +95,10 @@ void Input::Initialize(HWND windowHandle)
 // ----------------------------------------------------------
 void Input::Update()
 {
+	auto& io = ImGui::GetIO();
+	if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
+		return;
+	}
 	// Copy the old keys so we have last frame's data
 	memcpy(prevKbState, kbState, sizeof(unsigned char) * 256);
 

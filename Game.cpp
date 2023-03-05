@@ -372,10 +372,11 @@ void Game::RenderSDF()
 	float lightPos[] = { 0.0, -10.0 , 0.0 };
 	float spherePos[] = { 0.0, 0.0 , 7.0};
 	{
+		//io.WantCaptureMouse = true;
 		static float f = 0.0f;
 		static int counter = 0;
 
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
 
 		
 		ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
@@ -384,10 +385,6 @@ void Game::RenderSDF()
 		ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
 		
 		ImGui::ColorEdit3("color", color);
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();

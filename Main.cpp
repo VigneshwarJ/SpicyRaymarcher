@@ -36,7 +36,6 @@ int WINAPI WinMain(
 	hr = dxGame->InitDirectX();
 	if(FAILED(hr)) return hr;
 
-	dxGame->InitializeImGui();
 
 	// Begin the message and game loop, and then return
 	// whatever we get back once the game loop is over

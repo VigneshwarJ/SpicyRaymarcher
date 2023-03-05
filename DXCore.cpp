@@ -83,25 +83,6 @@ DXCore::~DXCore()
 	delete& DX12Helper::GetInstance();
 }
 
-void DXCore::InitializeImGui()
-{
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	ImGui::StyleColorsDark();
-	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	desc.NumDescriptors = 1;
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	if (device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&srvHeap)) != S_OK)
-		return;
-	ImGui_ImplWin32_Init(hWnd);
-	ImGui_ImplDX12_Init(device.Get(), 3,
-		DXGI_FORMAT_R8G8B8A8_UNORM, srvHeap,
-		srvHeap->GetCPUDescriptorHandleForHeapStart(),
-		srvHeap->GetGPUDescriptorHandleForHeapStart());
-}
 // --------------------------------------------------------
 // Created the actual window for our application
 // --------------------------------------------------------
@@ -180,6 +161,26 @@ HRESULT DXCore::InitWindow()
 
 	// Return an "everything is ok" HRESULT value
 	return S_OK;
+}
+
+void DXCore::InitializeImGui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	ImGui::StyleColorsDark();
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	desc.NumDescriptors = 1;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	if (device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&srvHeap)) != S_OK)
+		return;
+	ImGui_ImplWin32_Init(hWnd);
+	ImGui_ImplDX12_Init(device.Get(), 3,
+		DXGI_FORMAT_R8G8B8A8_UNORM, srvHeap,
+		srvHeap->GetCPUDescriptorHandleForHeapStart(),
+		srvHeap->GetGPUDescriptorHandleForHeapStart());
 }
 
 void DXCore::renderImGui()
@@ -581,7 +582,8 @@ HRESULT DXCore::Run()
 
 	// Give subclass a chance to initialize
 	Init();
-
+	Input::GetInstance();
+	InitializeImGui();
 	// Our overall game and message loop
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
