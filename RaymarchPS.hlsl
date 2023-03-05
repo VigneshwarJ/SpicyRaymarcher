@@ -26,11 +26,10 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 screenPosition	: SV_POSITION;
-	float3 worldPosition	: POSITION;
-	float2 uv				: TEXCOORD;
-	float3 normal			: NORMAL;
-	float3 tangent			: TANGENT;
+
+	float4 position		: SV_POSITION;
+	float2 uv           : TEXCOORD0;
+	float4x4 viewMatrix     : VIEW_MAT;
 };
 
 // Texture-related variables
@@ -41,6 +40,98 @@ Texture2D RoughnessTexture		: register(t3);
 
 
 SamplerState BasicSampler		: register(s0);
+float4x4 inverse(float4x4 m) {
+    float n11 = m[0][0], n12 = m[1][0], n13 = m[2][0], n14 = m[3][0];
+    float n21 = m[0][1], n22 = m[1][1], n23 = m[2][1], n24 = m[3][1];
+    float n31 = m[0][2], n32 = m[1][2], n33 = m[2][2], n34 = m[3][2];
+    float n41 = m[0][3], n42 = m[1][3], n43 = m[2][3], n44 = m[3][3];
+
+    float t11 = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
+    float t12 = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
+    float t13 = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
+    float t14 = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+
+    float det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
+    float idet = 1.0f / det;
+
+    float4x4 ret;
+
+    ret[0][0] = t11 * idet;
+    ret[0][1] = (n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44) * idet;
+    ret[0][2] = (n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44) * idet;
+    ret[0][3] = (n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43) * idet;
+
+    ret[1][0] = t12 * idet;
+    ret[1][1] = (n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44) * idet;
+    ret[1][2] = (n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44) * idet;
+    ret[1][3] = (n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43) * idet;
+
+    ret[2][0] = t13 * idet;
+    ret[2][1] = (n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44) * idet;
+    ret[2][2] = (n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44) * idet;
+    ret[2][3] = (n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43) * idet;
+
+    ret[3][0] = t14 * idet;
+    ret[3][1] = (n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34) * idet;
+    ret[3][2] = (n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34) * idet;
+    ret[3][3] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * idet;
+
+    return ret;
+}
+
+float3 getRayDirection(float2 screenPosition, float4x4 view) {
+    float4 position = float4(screenPosition, 1.0, 1.0);
+    position = position * float4(2.0, -2.0, 1.0, 1.0);
+    position = mul(inverse(view), position);
+    return normalize(position.xyz);
+}
+
+//float intersectSphere(float3 rayOrigin, float3 rayDirection, float3 spherePosition, float sphereRadius) {
+//    float3 L = spherePosition - rayOrigin;
+//    float tca = dot(L, rayDirection);
+//    if (tca < 0.0) return -1.0;
+//    float d2 = dot(L, L) - tca * tca;
+//    if (d2 > sphereRadius * sphereRadius) return -1.0;
+//    float thc = sqrt(sphereRadius * sphereRadius - d2);
+//    return tca - thc;
+//}
+//
+//float3 calculateNormal(float3 position, float3 spherePosition) {
+//    return normalize(position - spherePosition);
+//}
+//
+//float3 calculateLighting(float3 position, float3 normal, float3 lightPosition) {
+//    float3 toLight = normalize(lightPosition - position);
+//    float diffuse = max(0.0, dot(normal, toLight));
+//    float3 ambient = 0.1;
+//    float3 diffuseColor = 1.0;
+//    return diffuseColor;
+//}
+//
+//float4 main(VertexToPixel input) : SV_Target{
+//    float3 lightPosition = float3(0.0f, 4.0f, 4.0f);
+//    float3 OBJECT_POSITION = float3(0.0f, 0.0f, -10.0f);
+//    float2 screenPosition = input.position.xy;
+//    float3 rayDirection = getRayDirection(screenPosition,input.viewMatrix);
+//    float3 rayOrigin = input.viewMatrix[3].xyz;
+//    float sphereRadius = 0.0050f;
+//    float t = intersectSphere(rayOrigin, rayDirection, OBJECT_POSITION, sphereRadius);
+//    if (t < 0.0) {
+//        return float4(0.0, 0.0, 0.0, 1.0);
+//    }
+// else {
+//  float3 position = rayOrigin + t * rayDirection;
+//  float3 normal = calculateNormal(position, OBJECT_POSITION);
+//  float3 lighting = calculateLighting(position, normal, lightPosition);
+//  return float4(lighting, 1.0);
+//}
+//}
+
+
+float Sphere(float3 pos, float radius)
+{
+    return length(pos) - radius;
+}
 
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
@@ -53,56 +144,46 @@ SamplerState BasicSampler		: register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	return float4(0.0f, 0.5f, 0.5f, 1.0f);
+    //return float4(0.0f, 0.5f, 0.5f, 1.0f);
 
-	//return RoughnessTexture.Sample(BasicSampler, input.uv).rgba;
+    //SignedDistanceFunctions rm;
+    // ActionStruct actStruct;
+    float4 Col = float4(0.0f, 0.0f, 1.0f, 1.0f);
+    float3 pos = input.position; //WORLD_POSITION;
+    float3 normal = 0.0; //default to zero
 
-	////return lights[0].Color.xyzz;
-	//// Always re-normalize interpolated direction vectors
-	//input.normal = normalize(input.normal);
-	//input.tangent = normalize(input.tangent);
+    //variables that are temporarily going to be hardcoded for now
+    int maxSteps = 300;
+    float rmStop = 0.1f; //i have absolutely no idea what a good number is here
+    float3 OBJECT_POSITION = float3(5.0f, 1.0f, 0.0f); //cameraPosition + input.camLookDir * 10;
+    //float EPSILON = 0.0001f;
+    //float3 CAMERA_VECTOR = input.camLookDir;
+    //    float2 screenposition = input.position.xy;
+//    float3 raydirection = getraydirection(screenposition,input.viewmatrix);
+//    float3 rayorigin = input.viewmatrix[3].xyz;
+    for (int i = 0; i < maxSteps; i++)
+    {
+        //int shapesCount = 4;
+        //float distances[4];
+        //bool shouldSmooth = false;
+        //distances[0] = Sphere(pos - OBJECT_POSITION, 100.0);
 
-	////sampling the other textures
-	//input.normal = NormalMapping(NormalTexture, BasicSampler, input.uv, input.normal, input.tangent);
-	//float roughness = RoughnessTexture.Sample(BasicSampler, input.uv).r;
-	//float metal = MetalTexture.Sample(BasicSampler, input.uv).r;
-
-	////sampling the actual albedo
-	//float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, input.uv);
-	//surfaceColor.rgb = pow(surfaceColor.rgb, 2.2);// * colorTint.rgb; //apply gamma correction
-	////return surfaceColor.xyzz;
-
-	//	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
-	//// Note the use of lerp here - metal is generally 0 or 1, but might be in between
-	//// because of linear texture sampling, so we want lerp the specular color to match
-	//float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, metal);
-
-	//// Total color for this pixel
-	//float3 totalColor = float3(0, 0, 0);
-
-	//// Loop through all lights this frame
-	//for (int i = 0; i < lightCount; i++)
-	//{
-	//	// Which kind of light?
-	//	switch (lights[i].Type)
-	//	{
-	//	case LIGHT_TYPE_DIRECTIONAL:
-	//		totalColor += DirLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
-	//		break;
-
-	//	case LIGHT_TYPE_POINT:
-	//		totalColor += PointLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
-	//		break;
-
-	//	case LIGHT_TYPE_SPOT:
-	//		totalColor += SpotLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
-	//		break;
-	//	}
-	//}
+        float distance = Sphere(pos - OBJECT_POSITION, 100.0);// distances[0]; //start this with the first one
 
 
+        if (distance < rmStop) //hit!
+        {
+            Col = float4(1.0f, 0.0f, 0.0f, 1.0f);
+            //normal = rm.RMNormal(pos - OBJECT_POSITION);
+            break;
+        }
 
-	////return surfaceColor.xyzz;
-	//return totalColor.xyzz;
+        //This where we march the ray forward
+        pos += input.viewMatrix[3].xyz * distance;
+
+    }
+
+    //return float4(normal, Col.a);
+    return Col;
 
 }
