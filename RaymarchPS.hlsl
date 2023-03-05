@@ -31,6 +31,7 @@ struct VertexToPixel
 	float2 uv				: TEXCOORD;
 	float3 normal			: NORMAL;
 	float3 tangent			: TANGENT;
+	float3 camLookDir		: POSITION1;
 };
 
 // Texture-related variables
@@ -41,6 +42,23 @@ Texture2D RoughnessTexture		: register(t3);
 
 
 SamplerState BasicSampler		: register(s0);
+
+//// Raymarching functions - probably should move this to an include file later
+//struct SignedDistanceFunctions
+//{
+//	// primitives sourced from: https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+//	// yes, these variable names are the absolute worst. I would fix them but i dont even know what they mean
+//	float Sphere(float3 pos, float radius)
+//	{
+//		return length(pos) - radius;
+//	}
+//}
+	// primitives sourced from: https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+	// yes, these variable names are the absolute worst. I would fix them but i dont even know what they mean
+float Sphere(float3 pos, float radius)
+{
+	return length(pos) - radius;
+}
 
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
@@ -53,56 +71,44 @@ SamplerState BasicSampler		: register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	return float4(0.0f, 0.5f, 0.5f, 1.0f);
+	//return float4(0.0f, 0.5f, 0.5f, 1.0f);
 
-	//return RoughnessTexture.Sample(BasicSampler, input.uv).rgba;
+	//SignedDistanceFunctions rm;
+	// ActionStruct actStruct;
+	float4 Col = float4(0.0f, 0.0f, 1.0f, 1.0f);
+	float3 pos = input.worldPosition; //WORLD_POSITION;
+	float3 normal = 0.0; //default to zero
 
-	////return lights[0].Color.xyzz;
-	//// Always re-normalize interpolated direction vectors
-	//input.normal = normalize(input.normal);
-	//input.tangent = normalize(input.tangent);
+	//variables that are temporarily going to be hardcoded for now
+	int maxSteps = 300;
+	float rmStop = 0.1f; //i have absolutely no idea what a good number is here
+	float3 OBJECT_POSITION = float3(0.0f, 0.0f, 0.0f); //cameraPosition + input.camLookDir * 10;
+	//float EPSILON = 0.0001f;
+	//float3 CAMERA_VECTOR = input.camLookDir;
 
-	////sampling the other textures
-	//input.normal = NormalMapping(NormalTexture, BasicSampler, input.uv, input.normal, input.tangent);
-	//float roughness = RoughnessTexture.Sample(BasicSampler, input.uv).r;
-	//float metal = MetalTexture.Sample(BasicSampler, input.uv).r;
+	for (int i = 0; i < maxSteps; i++)
+	{
+		//int shapesCount = 4;
+		//float distances[4];
+		//bool shouldSmooth = false;
+		//distances[0] = Sphere(pos - OBJECT_POSITION, 100.0);
 
-	////sampling the actual albedo
-	//float4 surfaceColor = AlbedoTexture.Sample(BasicSampler, input.uv);
-	//surfaceColor.rgb = pow(surfaceColor.rgb, 2.2);// * colorTint.rgb; //apply gamma correction
-	////return surfaceColor.xyzz;
-
-	//	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
-	//// Note the use of lerp here - metal is generally 0 or 1, but might be in between
-	//// because of linear texture sampling, so we want lerp the specular color to match
-	//float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, metal);
-
-	//// Total color for this pixel
-	//float3 totalColor = float3(0, 0, 0);
-
-	//// Loop through all lights this frame
-	//for (int i = 0; i < lightCount; i++)
-	//{
-	//	// Which kind of light?
-	//	switch (lights[i].Type)
-	//	{
-	//	case LIGHT_TYPE_DIRECTIONAL:
-	//		totalColor += DirLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
-	//		break;
-
-	//	case LIGHT_TYPE_POINT:
-	//		totalColor += PointLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
-	//		break;
-
-	//	case LIGHT_TYPE_SPOT:
-	//		totalColor += SpotLightPBR(lights[i], input.normal, input.worldPosition, cameraPosition, roughness, metal, surfaceColor.rgb, specColor);
-	//		break;
-	//	}
-	//}
+		float distance = Sphere(pos - OBJECT_POSITION, 100.0);// distances[0]; //start this with the first one
 
 
+		if (distance < rmStop) //hit!
+		{
+			Col = float4(1.0f, 0.0f, 0.0f, 1.0f);
+			//normal = rm.RMNormal(pos - OBJECT_POSITION);
+			break;
+		}
 
-	////return surfaceColor.xyzz;
-	//return totalColor.xyzz;
+		//This where we march the ray forward
+		pos += input.camLookDir * distance;
+
+	}
+
+	//return float4(normal, Col.a);
+	return Col;
 
 }

@@ -43,6 +43,7 @@ struct VertexToPixel
 	float2 uv				: TEXCOORD;
 	float3 normal			: NORMAL;
 	float3 tangent			: TANGENT;
+	float3 camLookDir		: POSITION1; //im not sure if this is the right semantic for this but i also dont know what else im supposed to use
 };
 
 // --------------------------------------------------------
@@ -57,6 +58,12 @@ VertexToPixel main(VertexShaderInput input)
 	// Set up output struct
 	VertexToPixel output;
 
+	//the view direction is in the 3rd row and 1st 3 columns of the view matrix
+	output.camLookDir = float3(
+		view._13,
+		view._23,
+		view._33
+		);
 
 	// Calculate output position
 	matrix worldViewProj = mul(projection, mul(view, world));
