@@ -5,8 +5,10 @@
 #include <WindowsX.h>
 #include <sstream>
 #include <imgui.h>
+#include <imgui_impl_win32.h>
 
-
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // Define the static instance variable so our OS-level 
 // message handling function below can talk to our object
 DXCore* DXCore::DXCoreInstance = 0;
@@ -19,6 +21,8 @@ DXCore* DXCore::DXCoreInstance = 0;
 // --------------------------------------------------------
 LRESULT DXCore::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+		return true;
 	return DXCoreInstance->ProcessMessage(hWnd, uMsg, wParam, lParam);
 }
 
