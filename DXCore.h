@@ -55,7 +55,7 @@ protected:
 	HWND		hWnd;			// The handle to the window itself
 	std::string titleBarText;	// Custom text in window's title bar
 	bool		titleBarStats;	// Show extra stats in title bar?
-
+	ImGuiIO io ;
 	// Size of the window's client area
 	unsigned int width;
 	unsigned int height;

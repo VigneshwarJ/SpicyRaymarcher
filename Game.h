@@ -11,6 +11,7 @@
 #include "Material.h"
 #include "BufferStructs.h"
 #include "Lights.h"
+#include "SDFRenderer.h"
 
 class Game 
 	: public DXCore
@@ -31,6 +32,11 @@ private:
 
 	// Should we use vsync to limit the frame rate?
 	bool vsync;
+
+	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
+	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
+	void InitSDFRenderer();
+	void RenderSDF();
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void CreateRootSigAndPipelineState();
@@ -71,8 +77,14 @@ private:
 
 	std::vector<Light> lights;
 	int lightCount;
-
+	float color[4]; 
+	float sphereSize; 
+	float lightPos[3]; 
+	float spherePos[3]; 
 	bool raytracing;
+
+	//SDF variables
+	std::shared_ptr<SDFRenderer> sdfRenderer;
 	
 };
 

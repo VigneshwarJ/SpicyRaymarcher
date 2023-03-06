@@ -102,6 +102,9 @@
     <ClCompile Include="GameEntity.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="SDFRenderer.cpp">
+      <Filter>Source Files\Raymarcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\backends\imgui_impl_dx12.h">
@@ -158,6 +161,9 @@
     <ClInclude Include="GameEntity.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
+    <ClInclude Include="SDFRenderer.h">
+      <Filter>Header Files\Raymarcher</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -167,6 +173,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Raytracing.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="RaymarchVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="RaymarchPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
