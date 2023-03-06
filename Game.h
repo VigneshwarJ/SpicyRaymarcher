@@ -77,7 +77,10 @@ private:
 
 	std::vector<Light> lights;
 	int lightCount;
-
+	float color[4]; 
+	float sphereSize; 
+	float lightPos[3]; 
+	float spherePos[3]; 
 	bool raytracing;
 
 	//SDF variables

@@ -32,7 +32,11 @@ Game::Game(HINSTANCE hInstance)
 		1280,			   // Width of the window's client area
 		720,			   // Height of the window's client area
 		true),			   // Show extra stats (fps) in title bar?
-	vsync(false)
+	vsync(false),
+	color{ 1.0f,1.0f,1.0f,1.0f },
+sphereSize(5.0f),
+lightPos{ 0.0, -10.0 , 0.0 },
+spherePos { 0.0, 0.0 , 7.0 }
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -140,30 +144,6 @@ void Game::InitSDFRenderer() //Resorting to the nuclear option: this function wi
 		D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchVS.cso").c_str(), vertexShaderByteCode.GetAddressOf());
 		D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchPS.cso").c_str(), pixelShaderByteCode.GetAddressOf());
 	}
-
-	//sdfRenderer = std::make_shared<SDFRenderer>(
-	//	vsync,
-	//	numBackBuffers,
-	//	currentSwapBuffer,
-	//	device,
-	//	swapChain,
-	//	*commandAllocators,
-	//	commandQueue,
-	//	commandList,
-	//	rtvDescriptorSize,
-	//	rtvHeap,
-	//	dsvHeap,
-	//	srvHeap,
-	//	*rtvHandles,
-	//	dsvHandle,
-	//	*backBuffers,
-	//	depthStencilBuffer,
-	//	viewport,
-	//	scissorRect,
-	//	camera,
-	//	vertexShaderByteCode,
-	//	pixelShaderByteCode
-	//	);
 
 	// Input layout
 	const unsigned int inputElementCount = 1;
@@ -367,14 +347,9 @@ void Game::RenderSDF()
 			0, 0); // No scissor rects
 	}
 	
-	float color[4] = { 1.0f,1.0f,1.0f,1.0f };
-	float sphereSize =5.0f;
-	float lightPos[] = { 0.0, -10.0 , 0.0 };
-	float spherePos[] = { 0.0, 0.0 , 7.0};
 	{
 		//io.WantCaptureMouse = true;
 		static float f = 0.0f;
-		static int counter = 0;
 
 		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
 
