@@ -77,7 +77,7 @@ private:
 	unsigned int rtvDescriptorSize;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
-	ID3D12DescriptorHeap* srvHeap;
+	//ID3D12DescriptorHeap* srvHeap;
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles;// [numBackBuffers] ;
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	Microsoft::WRL::ComPtr<ID3D12Resource> backBuffers;// [numBackBuffers] ;

@@ -84,6 +84,8 @@ protected:
 	D3D12_VIEWPORT viewport;
 	D3D12_RECT scissorRect;
 
+	//breadcrumb: either use just make this a friend of the SDF renderer, or refactor to a "render core" that has these dx things and probably stuff with the helper
+
 	// Helper function for allocating a console window
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 

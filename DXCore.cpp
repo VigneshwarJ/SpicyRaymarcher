@@ -291,7 +291,7 @@ HRESULT DXCore::InitDirectX()
 		IDXGIAdapter1* hardwareAdapter;
 		GetHardwareAdapter(factory, &hardwareAdapter,true);
 		hr = D3D12CreateDevice(
-			hardwareAdapter, // Not explicitly specifying which adapter (GPU)
+			hardwareAdapter, // Not explicitly specifying which adapter (GPU) (but now we are specifying)
 			D3D_FEATURE_LEVEL_11_0, // MINIMUM feature level - NOT the level we'll turn on
 			IID_PPV_ARGS(device.GetAddressOf())); // Macro to grab necessary IDs of device
 		if (FAILED(hr)) return hr;
