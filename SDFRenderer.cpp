@@ -221,16 +221,16 @@ void SDFRenderer::Render()
 void SDFRenderer::CreateRootSigAndPipelineState()
 {
 	//have to just pass this in from Game since this requires some functions from DXCore. (in the future it would be really nice for these to be loaded via an AssetManager. Lets just get this up and running first though)
-	//// Blobs to hold raw shader byte code used in several steps below
-	//Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
-	//Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
-	//// Load shaders
-	//{
-	//	// Read our compiled vertex shader code into a blob
-	//	// - Essentially just "open the file and plop its contents here"
-	//	D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchVS.cso").c_str(), vertexShaderByteCode.GetAddressOf());
-	//	D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchPS.cso").c_str(), pixelShaderByteCode.GetAddressOf());
-	//}
+	// Blobs to hold raw shader byte code used in several steps below
+	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
+	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
+	// Load shaders
+	{
+		// Read our compiled vertex shader code into a blob
+		// - Essentially just "open the file and plop its contents here"
+		D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchVS.cso").c_str(), vertexShaderByteCode.GetAddressOf());
+		D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchPS.cso").c_str(), pixelShaderByteCode.GetAddressOf());
+	}
 	// Input layout
 	const unsigned int inputElementCount = 4;
 	D3D12_INPUT_ELEMENT_DESC inputElements[inputElementCount] = {};

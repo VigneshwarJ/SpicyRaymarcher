@@ -122,5 +122,26 @@ private:
 	// Texture resources we need to keep alive
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> textures;
 	std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>> cpuSideTextureDescriptorHeaps;
+
+
+	//// DirectX related objects and variables (originally located in DXCore)
+	//static const unsigned int numBackBuffers = 3;
+	//unsigned int currentSwapBuffer;
+	//D3D_FEATURE_LEVEL dxFeatureLevel;
+	//Microsoft::WRL::ComPtr<ID3D12Device> device;
+	//Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+	//Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[numBackBuffers];
+	//Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
+	//Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList;
+	//unsigned int rtvDescriptorSize;
+	//Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
+	//Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
+	//ID3D12DescriptorHeap* srvHeap;
+	//D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[numBackBuffers];
+	//D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	//Microsoft::WRL::ComPtr<ID3D12Resource> backBuffers[numBackBuffers];
+	//Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer;
+	//D3D12_VIEWPORT viewport;
+	//D3D12_RECT scissorRect;
 };
 

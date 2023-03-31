@@ -886,8 +886,8 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	RenderSDF();
-	//sdfRenderer->Render();
+	//RenderSDF();
+	sdfRenderer->Render();
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
 	////reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
