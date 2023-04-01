@@ -16,6 +16,7 @@
 class Game 
 	: public DXCore
 {
+	friend class SDFRenderer;
 
 public:
 	Game(HINSTANCE hInstance);
@@ -36,7 +37,7 @@ private:
 	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
 	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
 	void InitSDFRenderer();
-	void RenderSDF();
+	void RenderSDF(); //once the other renderer class is set up, this can be removed
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void CreateRootSigAndPipelineState();

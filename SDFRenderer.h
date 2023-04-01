@@ -13,11 +13,11 @@
 #include "Material.h"
 #include "BufferStructs.h"
 #include "Lights.h"
-class SDFRenderer
+class SDFRenderer //for now, this class is being declared as a friend of DXCore so that we can access the private variables. In the future I want to completely remove the need for Game to inherit from DXCore because this is tiresome
 	//: public DXCore //i dont know if this is a good idea yet but sure lets go with this for now
 { //Probably *not* going to work to inherit from dxcore. remember how the asset manager was a pain this way? Probably going to have to do something like that with shaders being initialized in game and then sent over here. ugh
 	//other option is to pull out stuff that this needs into its own singleton? that sounds like it could break a lot of stuff though
-	friend class DXCore; //this may be the most effective option available right now
+
 	/*
 	* Need to:
 	*	load shaders
@@ -59,11 +59,12 @@ public:
 		Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode
 	);
 
-	//this will be the only ctor if refactoring this as "friend" works as intended
-	/*SDFRenderer(
+	//this will be the only ctor if "friend" refactoring works as intended
+	SDFRenderer(
 		Game* game,
-
-	);*/
+		bool vsync,
+		std::shared_ptr<Camera> camera
+	);
 
 	~SDFRenderer();
 
@@ -74,7 +75,6 @@ private:
 
 #pragma region Stuff from DXCore/Game
 	//stuff that is at least for now is just going to be passed in the constructor here from game
-	//bool vsync;
 	//unsigned int numBackBuffers;
 	//unsigned int currentSwapBuffer;
 	//Microsoft::WRL::ComPtr<ID3D12Device> device;
@@ -93,9 +93,9 @@ private:
 	//D3D12_VIEWPORT viewport;
 	//D3D12_RECT scissorRect;
 
-
+	//from game, not in DXCore at all
+	bool vsync;
 	std::shared_ptr<Camera> camera;
-
 	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
 	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
 	

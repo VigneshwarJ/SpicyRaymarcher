@@ -37,27 +37,61 @@ SDFRenderer::SDFRenderer(
 	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode
 )
 {
-	this->vsync = vsync;
-	this->numBackBuffers = numBackBuffers;
-	this->currentSwapBuffer = currentSwapBuffer;
-	this->device = device;
-	this->swapChain = swapChain;
-	this->commandAllocators = commandAllocators;
-	this->commandQueue = commandQueue;
-	this->commandList = commandList;
-	this->rtvDescriptorSize = rtvDescriptorSize;
-	this->rtvHeap = rtvHeap;
-	this->dsvHeap = dsvHeap;
-	//this->srvHeap = srvHeap;
-	this->rtvHandles = rtvHandles;
-	this->dsvHandle = dsvHandle;
-	this->backBuffers = backBuffers;
-	this->depthStencilBuffer = depthStencilBuffer;
-	this->viewport = viewport;
-	this->scissorRect = scissorRect;
-	this->vertexShaderByteCode = vertexShaderByteCode;
-	this->pixelShaderByteCode = pixelShaderByteCode;
+	//this->vsync = vsync;
+	//this->numBackBuffers = numBackBuffers;
+	//this->currentSwapBuffer = currentSwapBuffer;
+	//this->device = device;
+	//this->swapChain = swapChain;
+	//this->commandAllocators = commandAllocators;
+	//this->commandQueue = commandQueue;
+	//this->commandList = commandList;
+	//this->rtvDescriptorSize = rtvDescriptorSize;
+	//this->rtvHeap = rtvHeap;
+	//this->dsvHeap = dsvHeap;
+	////this->srvHeap = srvHeap;
+	//this->rtvHandles = rtvHandles;
+	//this->dsvHandle = dsvHandle;
+	//this->backBuffers = backBuffers;
+	//this->depthStencilBuffer = depthStencilBuffer;
+	//this->viewport = viewport;
+	//this->scissorRect = scissorRect;
+	//this->vertexShaderByteCode = vertexShaderByteCode;
+	//this->pixelShaderByteCode = pixelShaderByteCode;
 
+	//this->camera = camera;
+
+
+	//CreateRootSigAndPipelineState();
+}
+
+SDFRenderer::SDFRenderer(
+	Game* game,
+	bool vsync,
+	std::shared_ptr<Camera> camera
+)
+{
+	//this->numBackBuffers = game->numBackBuffers;
+	//this->currentSwapBuffer = game->currentSwapBuffer;
+	//this->device = game->device;
+	//this->swapChain = game->swapChain;
+	//this->commandAllocators = game->commandAllocators;
+	//this->commandQueue = game->commandQueue;
+	//this->commandList = game->commandList;
+	//this->rtvDescriptorSize = game->rtvDescriptorSize;
+	//this->rtvHeap = game->rtvHeap;
+	//this->dsvHeap = game->dsvHeap;
+	////this->srvHeap = srvHeap;
+	//this->rtvHandles = game->rtvHandles;
+	//this->dsvHandle = game->dsvHandle;
+	//this->backBuffers = game->backBuffers;
+	//this->depthStencilBuffer = game->depthStencilBuffer;
+	//this->viewport = game->viewport;
+	//this->scissorRect = game->scissorRect;
+	this->game = game;
+
+	this->vsync = vsync;
+	//this->vertexShaderByteCode = vertexShaderByteCode;
+	//this->pixelShaderByteCode = pixelShaderByteCode;
 	this->camera = camera;
 
 
@@ -75,15 +109,19 @@ void SDFRenderer::Render()
 {
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
 	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
 	//&commandAllocators[currentSwapBuffer]->Reset();
 	//commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
-	dx12HelperInst.GetAllocatorByIndex(currentSwapBuffer)->Reset();
-	commandList->Reset(dx12HelperInst.GetAllocatorByIndex(currentSwapBuffer).Get(), 0);
+	dx12HelperInst.GetAllocatorByIndex(game->currentSwapBuffer)->Reset();
+	game->commandList->Reset(dx12HelperInst.GetAllocatorByIndex(game->currentSwapBuffer).Get(), 0);
 
 
 	// Grab the current back buffer for this frame
-	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
+	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = game->backBuffers[game->currentSwapBuffer];
 
 	// Clearing the render target
 	{
@@ -95,102 +133,123 @@ void SDFRenderer::Render()
 		rb.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 		rb.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		commandList->ResourceBarrier(1, &rb);
+		game->commandList->ResourceBarrier(1, &rb);
 
 		// Background color (Cornflower Blue in this case) for clearing
 		float color[] = { 0.4f, 0.6f, 0.75f, 1.0f };
 
 		// Clear the RTV
-		commandList->ClearRenderTargetView(
-			rtvHandles[currentSwapBuffer],
+		game->commandList->ClearRenderTargetView(
+			game->rtvHandles[game->currentSwapBuffer],
 			color,
 			0, 0); // No scissor rectangles
 
 		// Clear the depth buffer, too
-		commandList->ClearDepthStencilView(
-			dsvHandle,
+		game->commandList->ClearDepthStencilView(
+			game->dsvHandle,
 			D3D12_CLEAR_FLAG_DEPTH,
 			1.0f, // Max depth = 1.0f
 			0, // Not clearing stencil, but need a value
 			0, 0); // No scissor rects
 	}
 
+	{
+		//io.WantCaptureMouse = true;
+		static float f = 0.0f;
+
+		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
+
+
+		ImGui::SliderFloat("Sphere size", &game->sphereSize, 0, 100);
+
+		ImGui::SliderFloat3("light position", game->lightPos, -100.0, 100.0);
+		ImGui::SliderFloat3("sphere position", game->spherePos, -100.0, 100.0);
+
+		ImGui::ColorEdit3("color", game->color);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
 	
 	// Rendering here!
 	{
 		// Set overall pipeline state
-		commandList->SetPipelineState(pipelineState.Get());
+		game->commandList->SetPipelineState(pipelineState.Get());
 		// Root sig (must happen before root descriptor table)
-		commandList->SetGraphicsRootSignature(rootSignature.Get());
+		game->commandList->SetGraphicsRootSignature(rootSignature.Get());
 		// Set up other commands for rendering
-		commandList->OMSetRenderTargets(1, &rtvHandles[currentSwapBuffer], true, &dsvHandle);
-		commandList->RSSetViewports(1, &viewport);
-		commandList->RSSetScissorRects(1, &scissorRect);
-		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		game->commandList->OMSetRenderTargets(1, &game->rtvHandles[game->currentSwapBuffer], true, &game->dsvHandle);
+		game->commandList->RSSetViewports(1, &game->viewport);
+		game->commandList->RSSetScissorRects(1, &game->scissorRect);
+		game->commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
 			dx12HelperInst.GetCBVSRVDescriptorHeap();
-		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
+		game->commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 
 		//// Draw
-		////for (int i = 0; i < entities.size(); i++)
+		for (int i = 0; i < game->entities.size(); i++)
 		{
-		//	//std::shared_ptr<GameEntity> thisEntity = entities[i];
-		//	//std::shared_ptr<Material> mat = thisEntity->GetMaterial();
+			std::shared_ptr<GameEntity> thisEntity = game->entities[i];
+			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
 
-		//	//commandList->SetPipelineState(mat->GetPipelineState().Get());
-		//	//vert shader setup
-		//	{
-		//		VertexShaderExternalData externalData = {};
+			game->commandList->SetPipelineState(mat->GetPipelineState().Get());
+			{
+				VertexShaderExternalData externalData = {};
+				externalData.view = camera->GetView();
+				externalData.projection = camera->GetProjection();
 
-		//		//may need something analogous to these later once we set up SDF class
-		//		//externalData.world = thisEntity->GetTransform()->GetWorldMatrix(); 
-		//		//externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
-		//		externalData.view = camera->GetView();
-		//		externalData.projection = camera->GetProjection();
+				//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
-		//		//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
-		//		D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
+				game->commandList->SetGraphicsRootDescriptorTable(0, handleVS);
+			}
+			// Pixel shader data and cbuffer setup
+			{
+				PixelShaderExternalData psData = {};
+				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
+				psData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
+				XMStoreFloat3(&(psData.cameraForward), camera->getForward());
+				XMStoreFloat3(&(psData.cameraRight), camera->getRight());
+				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
+				psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
+				psData.sphereColor = XMFLOAT4(game->color[0], game->color[1], game->color[0], game->color[0]);
+				psData.lightPosition = XMFLOAT3A(game->lightPos);
+				psData.sphereRadius = game->sphereSize;
+				psData.spherePosition = XMFLOAT3A(game->spherePos);
 
-		//		commandList->SetGraphicsRootDescriptorTable(0, handleVS);
-		//	}
-		//	// Pixel shader data and cbuffer setup
-		//	{
-		//		PixelShaderExternalData psData = {};
-		//		//psData.colorTint = mat->GetColorTint();
-		//		//psData.uvScale = mat->GetUVScale();
-		//		//psData.uvOffset = mat->GetUVOffset();
-		//		psData.cameraPosition = camera->GetTransform()->GetPosition(); //DEFINITELY need a camera position
-		//		//psData.lightCount = lightCount;
-		//		//memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
-		//		// Send this to a chunk of the constant buffer heap
-		//		// and grab the GPU handle for it so we can set it for this draw
-		//		D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
-		//			dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-		//				(void*)(&psData), sizeof(PixelShaderExternalData));
-		//		// Set this constant buffer handle
-		//		// Note: This assumes that descriptor table 1 is the
-		//		// place to put this particular descriptor. This
-		//		// is based on how we set up our root signature.
-		//		commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
-		//	}
+
+				//// Send this to a chunk of the constant buffer heap
+				//// and grab the GPU handle for it so we can set it for this draw
+				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+						(void*)(&psData), sizeof(PixelShaderExternalData));
+				//// Set this constant buffer handle
+				//// Note: This assumes that descriptor table 1 is the
+				//// place to put this particular descriptor. This
+				//// is based on how we set up our root signature.
+				game->commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+			}
 
 			// Set the SRV descriptor handle for this material's textures
 			// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
-			//commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
+			game->commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
 
 			// Grab the vertex buffer view and index buffer view from this entity's mesh
-			//vbView = thisEntity->GetMesh()->GetVertBufferView();
-			//ibView = thisEntity->GetMesh()->GetIndexBufferView();
+			game->vbView = thisEntity->GetMesh()->GetVertBufferView();
+			game->ibView = thisEntity->GetMesh()->GetIndexBufferView();
 
-			//Set them using IASetVertexBuffers() and IASetIndexBuffer()
-			//commandList->IASetVertexBuffers(0, 1, &vbView);
-			//commandList->IASetIndexBuffer(&ibView);
+			// Set them using IASetVertexBuffers() and IASetIndexBuffer()
+			game->commandList->IASetVertexBuffers(0, 1, &game->vbView);
+			game->commandList->IASetIndexBuffer(&game->ibView);
 
 			// Call DrawIndexedInstanced() using the index count of this entity's mesh
-			//commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-			commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
+			game->commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
+			//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
 		}
+
+		game->renderImGui();
+
 		//Present
 		{
 
@@ -202,17 +261,17 @@ void SDFRenderer::Render()
 			rb.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 			rb.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 			rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			commandList->ResourceBarrier(1, &rb);
+			game->commandList->ResourceBarrier(1, &rb);
 
 			// Must occur BEFORE present
 			dx12HelperInst.CloseAndExecuteCommandList();
 			// Present the current back buffer
-			swapChain->Present(vsync ? 1 : 0, 0);
+			game->swapChain->Present(vsync ? 1 : 0, 0);
 			//// Figure out which buffer is next
 			//currentSwapBuffer++;
 			//if (currentSwapBuffer >= numBackBuffers)
 			//	currentSwapBuffer = 0;
-			currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
+			game->currentSwapBuffer = dx12HelperInst.SyncSwapChain(game->currentSwapBuffer);
 		}
 	}
 
@@ -220,21 +279,26 @@ void SDFRenderer::Render()
 
 void SDFRenderer::CreateRootSigAndPipelineState()
 {
-	//have to just pass this in from Game since this requires some functions from DXCore. (in the future it would be really nice for these to be loaded via an AssetManager. Lets just get this up and running first though)
+	//since we are friend of DXCore just call the path functions from Game
 	// Blobs to hold raw shader byte code used in several steps below
-	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
-	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
+	//Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
+	//Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
 	// Load shaders
 	{
 		// Read our compiled vertex shader code into a blob
 		// - Essentially just "open the file and plop its contents here"
-		D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchVS.cso").c_str(), vertexShaderByteCode.GetAddressOf());
-		D3DReadFileToBlob(GetFullPathTo_Wide(L"RaymarchPS.cso").c_str(), pixelShaderByteCode.GetAddressOf());
+		D3DReadFileToBlob(game->GetFullPathTo_Wide(L"RaymarchVS.cso").c_str(), vertexShaderByteCode.GetAddressOf());
+		D3DReadFileToBlob(game->GetFullPathTo_Wide(L"RaymarchPS.cso").c_str(), pixelShaderByteCode.GetAddressOf());
 	}
 	// Input layout
 	const unsigned int inputElementCount = 4;
 	D3D12_INPUT_ELEMENT_DESC inputElements[inputElementCount] = {};
 	{
+		inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
+		inputElements[0].SemanticName = "SV_VertexID"; // Name must match semantic in shader
+		inputElements[0].SemanticIndex = 0; // This is the first semantic of this type
+
 		//inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 		//inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
 		//inputElements[0].SemanticName = "POSITION"; // Name must match semantic in shader
@@ -337,7 +401,7 @@ void SDFRenderer::CreateRootSigAndPipelineState()
 		}
 
 		// Actually create the root sig
-		device->CreateRootSignature(
+		game->device->CreateRootSignature(
 			0,
 			serializedRootSig->GetBufferPointer(),
 			serializedRootSig->GetBufferSize(),
@@ -378,7 +442,7 @@ void SDFRenderer::CreateRootSigAndPipelineState()
 		// -- Misc ---
 		psoDesc.SampleMask = 0xffffffff;
 		// Create the pipe state object
-		device->CreateGraphicsPipelineState(&psoDesc,
+		game->device->CreateGraphicsPipelineState(&psoDesc,
 			IID_PPV_ARGS(pipelineState.GetAddressOf()));
 
 	}

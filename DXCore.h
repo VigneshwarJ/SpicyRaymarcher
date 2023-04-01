@@ -15,6 +15,7 @@
 
 class DXCore
 {
+	friend class SDFRenderer;
 public:
 	DXCore(
 		HINSTANCE hInstance,		// The application's handle
