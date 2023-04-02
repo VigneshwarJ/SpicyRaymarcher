@@ -43,6 +43,7 @@ spherePos { 0.0, 0.0 , 7.0 }
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
+	renderer = std::make_shared<SDFRenderer>();
 }
 
 // --------------------------------------------------------
@@ -70,14 +71,14 @@ void Game::Init()
 	InitSDFRenderer();
 
 
-	// Attempt to initialize DXR
-	RaytracingHelper::GetInstance().Initialize(
-		width,
-		height,
-		device,
-		commandQueue,
-		commandList,
-		GetFullPathTo_Wide(L"Raytracing.cso"));
+	//// Attempt to initialize DXR
+	//RaytracingHelper::GetInstance().Initialize(
+	//	width,
+	//	height,
+	//	device,
+	//	commandQueue,
+	//	commandList,
+	//	GetFullPathTo_Wide(L"Raytracing.cso"));
 
 
 	// Seed random
@@ -126,16 +127,18 @@ void Game::Init()
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
 
-	// Ensure the command list is closed going into Draw for the first time
-	commandList->Close();
+	// I put this in the sdfrenderer init method for now
+	//// Ensure the command list is closed going into Draw for the first time
+	//commandList->Close();
 
 	raytracing = false;
 }
 
-void Game::InitSDFRenderer() //Resorting to the nuclear option: this function will basically just exist as an sdf CreateRootSigAndPipelineState for now
+void Game::InitSDFRenderer() 
 {
-	sdfRenderer = std::make_shared<SDFRenderer>(this, vsync, camera);
-
+	sdfRenderer = renderer; //this is lazy and bad im sorry
+	sdfRenderer->Init(vsync, camera);
+	{
 	//// Blobs to hold raw shader byte code used in several steps below
 	//Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
 	//Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
@@ -304,173 +307,175 @@ void Game::InitSDFRenderer() //Resorting to the nuclear option: this function wi
 
 	//}
 }
-
-void Game::RenderSDF()
-{
-	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
-	commandAllocators[currentSwapBuffer]->Reset();
-	commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
-
-
-	// Grab the current back buffer for this frame
-	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
-
-	// Clearing the render target
-	{
-		// Transition the back buffer from present to render target
-		D3D12_RESOURCE_BARRIER rb = {};
-		rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		rb.Transition.pResource = currentBackBuffer.Get();
-		rb.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-		rb.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		commandList->ResourceBarrier(1, &rb);
-
-		// Background color (Cornflower Blue in this case) for clearing
-		float color[] = { 0.4f, 0.6f, 0.75f, 1.0f };
-
-		// Clear the RTV
-		commandList->ClearRenderTargetView(
-			rtvHandles[currentSwapBuffer],
-			color,
-			0, 0); // No scissor rectangles
-
-		// Clear the depth buffer, too
-		commandList->ClearDepthStencilView(
-			dsvHandle,
-			D3D12_CLEAR_FLAG_DEPTH,
-			1.0f, // Max depth = 1.0f
-			0, // Not clearing stencil, but need a value
-			0, 0); // No scissor rects
-	}
-	
-	{
-		//io.WantCaptureMouse = true;
-		static float f = 0.0f;
-
-		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
-
-		
-		ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
-		
-		ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
-		ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
-		
-		ImGui::ColorEdit3("color", color);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
-	}
-
-
-
-	// Rendering here!
-	{
-		// Set overall pipeline state
-		commandList->SetPipelineState(pipelineState.Get());
-		// Root sig (must happen before root descriptor table)
-		commandList->SetGraphicsRootSignature(rootSignature.Get());
-		// Set up other commands for rendering
-		commandList->OMSetRenderTargets(1, &rtvHandles[currentSwapBuffer], true, &dsvHandle);
-		commandList->RSSetViewports(1, &viewport);
-		commandList->RSSetScissorRects(1, &scissorRect);
-		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
-			dx12HelperInst.GetCBVSRVDescriptorHeap();
-		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
-
-		// Draw
-		for (int i = 0; i < entities.size(); i++)
-		{
-			std::shared_ptr<GameEntity> thisEntity = entities[i];
-			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
-
-			commandList->SetPipelineState(mat->GetPipelineState().Get());
-			{
-				VertexShaderExternalData externalData = {};
-				externalData.view = camera->GetView();
-				externalData.projection = camera->GetProjection();
-
-				//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
-				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
-
-				commandList->SetGraphicsRootDescriptorTable(0, handleVS);
-			}
-			// Pixel shader data and cbuffer setup
-			{
-				PixelShaderExternalData psData = {};
-				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
-				psData.cameraPosition = XMFLOAT3A(pos.x,pos.y ,pos.z);
-				XMStoreFloat3(&(psData.cameraForward), camera->getForward());
-				XMStoreFloat3(&(psData.cameraRight), camera->getRight());
-				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
-				psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
-				psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);
-				psData.lightPosition = XMFLOAT3A(lightPos);
-				psData.sphereRadius = sphereSize;
-				psData.spherePosition = XMFLOAT3A(spherePos);
-
-
-				//// Send this to a chunk of the constant buffer heap
-				//// and grab the GPU handle for it so we can set it for this draw
-				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
-					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-						(void*)(&psData), sizeof(PixelShaderExternalData));
-				//// Set this constant buffer handle
-				//// Note: This assumes that descriptor table 1 is the
-				//// place to put this particular descriptor. This
-				//// is based on how we set up our root signature.
-				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
-			}
-
-			// Set the SRV descriptor handle for this material's textures
-			// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
-			commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
-
-			// Grab the vertex buffer view and index buffer view from this entity's mesh
-			vbView = thisEntity->GetMesh()->GetVertBufferView();
-			ibView = thisEntity->GetMesh()->GetIndexBufferView();
-
-			// Set them using IASetVertexBuffers() and IASetIndexBuffer()
-			commandList->IASetVertexBuffers(0, 1, &vbView);
-			commandList->IASetIndexBuffer(&ibView);
-
-			// Call DrawIndexedInstanced() using the index count of this entity's mesh
-			commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-			//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
-		}
-		renderImGui();
-		//Present
-		{
-
-			// Transition back to present
-			D3D12_RESOURCE_BARRIER rb = {};
-			rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-			rb.Transition.pResource = currentBackBuffer.Get();
-			rb.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-			rb.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-			rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			commandList->ResourceBarrier(1, &rb);
-
-			// Must occur BEFORE present
-			dx12HelperInst.CloseAndExecuteCommandList();
-			// Present the current back buffer
-			swapChain->Present(vsync ? 1 : 0, 0);
-			//// Figure out which buffer is next
-			//currentSwapBuffer++;
-			//if (currentSwapBuffer >= numBackBuffers)
-			//	currentSwapBuffer = 0;
-			currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
-		}
-	}
 }
+
+//
+//void Game::RenderSDF()
+//{
+//	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
+//	ImGui_ImplDX12_NewFrame();
+//	ImGui_ImplWin32_NewFrame();
+//	ImGui::NewFrame();
+//	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
+//	commandAllocators[currentSwapBuffer]->Reset();
+//	commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
+//
+//
+//	// Grab the current back buffer for this frame
+//	Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
+//
+//	// Clearing the render target
+//	{
+//		// Transition the back buffer from present to render target
+//		D3D12_RESOURCE_BARRIER rb = {};
+//		rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+//		rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+//		rb.Transition.pResource = currentBackBuffer.Get();
+//		rb.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+//		rb.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+//		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+//		commandList->ResourceBarrier(1, &rb);
+//
+//		// Background color (Cornflower Blue in this case) for clearing
+//		float color[] = { 0.4f, 0.6f, 0.75f, 1.0f };
+//
+//		// Clear the RTV
+//		commandList->ClearRenderTargetView(
+//			rtvHandles[currentSwapBuffer],
+//			color,
+//			0, 0); // No scissor rectangles
+//
+//		// Clear the depth buffer, too
+//		commandList->ClearDepthStencilView(
+//			dsvHandle,
+//			D3D12_CLEAR_FLAG_DEPTH,
+//			1.0f, // Max depth = 1.0f
+//			0, // Not clearing stencil, but need a value
+//			0, 0); // No scissor rects
+//	}
+//	
+//	{
+//		//io.WantCaptureMouse = true;
+//		static float f = 0.0f;
+//
+//		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
+//
+//		
+//		ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
+//		
+//		ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
+//		ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
+//		
+//		ImGui::ColorEdit3("color", color);
+//
+//		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+//		ImGui::End();
+//	}
+//
+//
+//
+//	// Rendering here!
+//	{
+//		// Set overall pipeline state
+//		commandList->SetPipelineState(pipelineState.Get());
+//		// Root sig (must happen before root descriptor table)
+//		commandList->SetGraphicsRootSignature(rootSignature.Get());
+//		// Set up other commands for rendering
+//		commandList->OMSetRenderTargets(1, &rtvHandles[currentSwapBuffer], true, &dsvHandle);
+//		commandList->RSSetViewports(1, &viewport);
+//		commandList->RSSetScissorRects(1, &scissorRect);
+//		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+//
+//		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
+//			dx12HelperInst.GetCBVSRVDescriptorHeap();
+//		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
+//
+//		// Draw
+//		for (int i = 0; i < entities.size(); i++)
+//		{
+//			std::shared_ptr<GameEntity> thisEntity = entities[i];
+//			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
+//
+//			commandList->SetPipelineState(mat->GetPipelineState().Get());
+//			{
+//				VertexShaderExternalData externalData = {};
+//				externalData.view = camera->GetView();
+//				externalData.projection = camera->GetProjection();
+//
+//				//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+//				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
+//
+//				commandList->SetGraphicsRootDescriptorTable(0, handleVS);
+//			}
+//			// Pixel shader data and cbuffer setup
+//			{
+//				PixelShaderExternalData psData = {};
+//				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
+//				psData.cameraPosition = XMFLOAT3A(pos.x,pos.y ,pos.z);
+//				XMStoreFloat3(&(psData.cameraForward), camera->getForward());
+//				XMStoreFloat3(&(psData.cameraRight), camera->getRight());
+//				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
+//				psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
+//				psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);
+//				psData.lightPosition = XMFLOAT3A(lightPos);
+//				psData.sphereRadius = sphereSize;
+//				psData.spherePosition = XMFLOAT3A(spherePos);
+//
+//
+//				//// Send this to a chunk of the constant buffer heap
+//				//// and grab the GPU handle for it so we can set it for this draw
+//				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+//					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+//						(void*)(&psData), sizeof(PixelShaderExternalData));
+//				//// Set this constant buffer handle
+//				//// Note: This assumes that descriptor table 1 is the
+//				//// place to put this particular descriptor. This
+//				//// is based on how we set up our root signature.
+//				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+//			}
+//
+//			// Set the SRV descriptor handle for this material's textures
+//			// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
+//			commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
+//
+//			// Grab the vertex buffer view and index buffer view from this entity's mesh
+//			vbView = thisEntity->GetMesh()->GetVertBufferView();
+//			ibView = thisEntity->GetMesh()->GetIndexBufferView();
+//
+//			// Set them using IASetVertexBuffers() and IASetIndexBuffer()
+//			commandList->IASetVertexBuffers(0, 1, &vbView);
+//			commandList->IASetIndexBuffer(&ibView);
+//
+//			// Call DrawIndexedInstanced() using the index count of this entity's mesh
+//			commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
+//			//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
+//		}
+//		renderImGui();
+//		//Present
+//		{
+//
+//			// Transition back to present
+//			D3D12_RESOURCE_BARRIER rb = {};
+//			rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+//			rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+//			rb.Transition.pResource = currentBackBuffer.Get();
+//			rb.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+//			rb.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+//			rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+//			commandList->ResourceBarrier(1, &rb);
+//
+//			// Must occur BEFORE present
+//			dx12HelperInst.CloseAndExecuteCommandList();
+//			// Present the current back buffer
+//			swapChain->Present(vsync ? 1 : 0, 0);
+//			//// Figure out which buffer is next
+//			//currentSwapBuffer++;
+//			//if (currentSwapBuffer >= numBackBuffers)
+//			//	currentSwapBuffer = 0;
+//			currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
+//		}
+//	}
+//}
 
 // --------------------------------------------------------
 // Loads the two basic shaders, then creates the root signature 
@@ -485,8 +490,8 @@ void Game::CreateRootSigAndPipelineState()
 	{
 		// Read our compiled vertex shader code into a blob
 		// - Essentially just "open the file and plop its contents here"
-		D3DReadFileToBlob(GetFullPathTo_Wide(L"VertexShader.cso").c_str(), vertexShaderByteCode.GetAddressOf());
-		D3DReadFileToBlob(GetFullPathTo_Wide(L"PixelShader.cso").c_str(), pixelShaderByteCode.GetAddressOf());
+		D3DReadFileToBlob(Utils::GetFullPathTo_Wide(L"VertexShader.cso").c_str(), vertexShaderByteCode.GetAddressOf());
+		D3DReadFileToBlob(Utils::GetFullPathTo_Wide(L"PixelShader.cso").c_str(), pixelShaderByteCode.GetAddressOf());
 	}
 	// Input layout
 	const unsigned int inputElementCount = 4;
@@ -709,9 +714,9 @@ void Game::CreateEntities()
 
 void Game::CreateMeshes()
 {
-	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/sphere.obj").c_str(), device));
-	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/cube.obj").c_str(), device));
-	meshes.push_back(std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/helix.obj").c_str(), device));
+	meshes.push_back(std::make_shared<Mesh>(Utils::GetFullPathTo("../../Assets/Models/sphere.obj").c_str(), device));
+	meshes.push_back(std::make_shared<Mesh>(Utils::GetFullPathTo("../../Assets/Models/cube.obj").c_str(), device));
+	meshes.push_back(std::make_shared<Mesh>(Utils::GetFullPathTo("../../Assets/Models/helix.obj").c_str(), device));
 }
 
 void Game::PlaceEntities()
@@ -731,7 +736,7 @@ void Game::LoadTextures()
 
 void Game::CreateMaterials()
 {
-	std::wstring assets = GetFullPathTo_Wide(L"../../Assets");
+	std::wstring assets = Utils::GetFullPathTo_Wide(L"../../Assets");
 	std::wstring textures = assets + L"\\Textures";
 	D3D12_CPU_DESCRIPTOR_HANDLE albedo = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_albedo.png").c_str());
 	D3D12_CPU_DESCRIPTOR_HANDLE metal = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_metal.png").c_str());
@@ -888,163 +893,165 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	{//this might not be right but i am actually pretty sure that you can do this part anywhere during the frame and then just call imgui render whenever that needs to happen (so actually this should probably happen outside of draw)
+		static float f = 0.0f;
+		static int counter = 0;
+
+		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+		ImGui::Checkbox("Raytracing", &raytracing);      // Edit bools storing our window open/close state
+
+		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
 	//RenderSDF();
-	sdfRenderer->Render();
+	sdfRenderer->Render(entities, color, sphereSize, lightPos, spherePos);
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
-	////reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
-	//commandAllocators[currentSwapBuffer]->Reset();
-	//commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
-	//ImGui_ImplDX12_NewFrame();
-	//ImGui_ImplWin32_NewFrame();
-	//ImGui::NewFrame();
-	//// Grab the current back buffer for this frame
-	//Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
-	//{
-	//	static float f = 0.0f;
-	//	static int counter = 0;
+	{
+		////reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
+		//commandAllocators[currentSwapBuffer]->Reset();
+		//commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
+		//ImGui_ImplDX12_NewFrame();
+		//ImGui_ImplWin32_NewFrame();
+		//ImGui::NewFrame();
+		//// Grab the current back buffer for this frame
+		//Microsoft::WRL::ComPtr<ID3D12Resource> currentBackBuffer = backBuffers[currentSwapBuffer];
+		//// Clearing the render target
+		//{
+		//	// Transition the back buffer from present to render target
+		//	D3D12_RESOURCE_BARRIER rb = {};
+		//	rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		//	rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		//	rb.Transition.pResource = currentBackBuffer.Get();
+		//	rb.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+		//	rb.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		//	rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		//	commandList->ResourceBarrier(1, &rb);
+		//	// Background color (Cornflower Blue in this case) for clearing
+		//	float color[] = { 0.4f, 0.6f, 0.75f, 1.0f };
+		//	// Clear the RTV
+		//	commandList->ClearRenderTargetView(
+		//		rtvHandles[currentSwapBuffer],
+		//		color,
+		//		0, 0); // No scissor rectangles
+		//	// Clear the depth buffer, too
+		//	commandList->ClearDepthStencilView(
+		//		dsvHandle,
+		//		D3D12_CLEAR_FLAG_DEPTH,
+		//		1.0f, // Max depth = 1.0f
+		//		0, // Not clearing stencil, but need a value
+		//		0, 0); // No scissor rects
+		//}
 
-	//	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+		//// Rendering here!
+		//{
+		//	// Set overall pipeline state
+		//	commandList->SetPipelineState(pipelineState.Get());
+		//	// Root sig (must happen before root descriptor table)
+		//	commandList->SetGraphicsRootSignature(rootSignature.Get());
+		//	// Set up other commands for rendering
+		//	commandList->OMSetRenderTargets(1, &rtvHandles[currentSwapBuffer], true, &dsvHandle);
+		//	commandList->RSSetViewports(1, &viewport);
+		//	commandList->RSSetScissorRects(1, &scissorRect);
+		//	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	//	ImGui::Checkbox("Raytracing", &raytracing);      // Edit bools storing our window open/close state
+		//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
+		//		dx12HelperInst.GetCBVSRVDescriptorHeap();
+		//	commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 
-	//	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-	//		counter++;
-	//	ImGui::SameLine();
-	//	ImGui::Text("counter = %d", counter);
+		//	// Draw
+		//	for (int i = 0; i < entities.size(); i++)
+		//	{
+		//		std::shared_ptr<GameEntity> thisEntity = entities[i];
+		//		std::shared_ptr<Material> mat = thisEntity->GetMaterial();
 
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//	ImGui::End();
-	//}
-	//// Clearing the render target
-	//{
-	//	// Transition the back buffer from present to render target
-	//	D3D12_RESOURCE_BARRIER rb = {};
-	//	rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	//	rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	//	rb.Transition.pResource = currentBackBuffer.Get();
-	//	rb.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	//	rb.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	//	rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	//	commandList->ResourceBarrier(1, &rb);
-	//	// Background color (Cornflower Blue in this case) for clearing
-	//	float color[] = { 0.4f, 0.6f, 0.75f, 1.0f };
-	//	// Clear the RTV
-	//	commandList->ClearRenderTargetView(
-	//		rtvHandles[currentSwapBuffer],
-	//		color,
-	//		0, 0); // No scissor rectangles
-	//	// Clear the depth buffer, too
-	//	commandList->ClearDepthStencilView(
-	//		dsvHandle,
-	//		D3D12_CLEAR_FLAG_DEPTH,
-	//		1.0f, // Max depth = 1.0f
-	//		0, // Not clearing stencil, but need a value
-	//		0, 0); // No scissor rects
-	//}
+				//commandList->SetPipelineState(mat->GetPipelineState().Get());
+		//		//vert shader setup
+		//		{
+		//			VertexShaderExternalData externalData = {};
+		//			//externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
+		//			//externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
+		//			externalData.view = camera->GetView();
+		//			externalData.projection = camera->GetProjection();
 
-	//// Rendering here!
-	//{
-	//	// Set overall pipeline state
-	//	commandList->SetPipelineState(pipelineState.Get());
-	//	// Root sig (must happen before root descriptor table)
-	//	commandList->SetGraphicsRootSignature(rootSignature.Get());
-	//	// Set up other commands for rendering
-	//	commandList->OMSetRenderTargets(1, &rtvHandles[currentSwapBuffer], true, &dsvHandle);
-	//	commandList->RSSetViewports(1, &viewport);
-	//	commandList->RSSetScissorRects(1, &scissorRect);
-	//	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		////			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+		//			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
-	//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
-	//		dx12HelperInst.GetCBVSRVDescriptorHeap();
-	//	commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
+		//			commandList->SetGraphicsRootDescriptorTable(0, handleVS);
+		//		}
+		//		// Pixel shader data and cbuffer setup
+		//		{
+		//			PixelShaderExternalData psData = {};
+		//			//psData.colorTint = mat->GetColorTint();
+		//			//psData.uvScale = mat->GetUVScale();
+		//			//psData.uvOffset = mat->GetUVOffset();
+		//			psData.cameraPosition = camera->GetTransform()->GetPosition();
+		//			XMStoreFloat3(&(psData.cameraForward), camera->getForward());
+		//			XMStoreFloat3(&(psData.cameraRight), camera->getRight());
+		//			XMStoreFloat3(&(psData.cameraUp), camera->getUp());
+		//			psData.bgColor = XMFLOAT3(1.0f, 1.0f, 0.0f);
+		//			//psData.lightCount = lightCount;
+		//			//memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
+		//			//// Send this to a chunk of the constant buffer heap
+		//			//// and grab the GPU handle for it so we can set it for this draw
+		//			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+		//				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+		//					(void*)(&psData), sizeof(PixelShaderExternalData));
+		//			//// Set this constant buffer handle
+		//			//// Note: This assumes that descriptor table 1 is the
+		//			//// place to put this particular descriptor. This
+		//			//// is based on how we set up our root signature.
+		//			commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+		//		}
 
-	//	// Draw
-	//	for (int i = 0; i < entities.size(); i++)
-	//	{
-	//		std::shared_ptr<GameEntity> thisEntity = entities[i];
-	//		std::shared_ptr<Material> mat = thisEntity->GetMaterial();
+		//		// Set the SRV descriptor handle for this material's textures
+		//		// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
+		//		commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
 
-			//commandList->SetPipelineState(mat->GetPipelineState().Get());
-	//		//vert shader setup
-	//		{
-	//			VertexShaderExternalData externalData = {};
-	//			//externalData.world = thisEntity->GetTransform()->GetWorldMatrix();
-	//			//externalData.worldInverseTranspose = thisEntity->GetTransform()->GetWorldInverseTransposeMatrix();
-	//			externalData.view = camera->GetView();
-	//			externalData.projection = camera->GetProjection();
+		//		// Grab the vertex buffer view and index buffer view from this entity�s mesh
+		//		vbView = thisEntity->GetMesh()->GetVertBufferView();
+		//		ibView = thisEntity->GetMesh()->GetIndexBufferView();
 
-	////			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
-	//			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
+		//		//Set them using IASetVertexBuffers() and IASetIndexBuffer()
+		//		commandList->IASetVertexBuffers(0, 1, &vbView);
+		//		commandList->IASetIndexBuffer(&ibView);
 
-	//			commandList->SetGraphicsRootDescriptorTable(0, handleVS);
-	//		}
-	//		// Pixel shader data and cbuffer setup
-	//		{
-	//			PixelShaderExternalData psData = {};
-	//			//psData.colorTint = mat->GetColorTint();
-	//			//psData.uvScale = mat->GetUVScale();
-	//			//psData.uvOffset = mat->GetUVOffset();
-	//			psData.cameraPosition = camera->GetTransform()->GetPosition();
-	//			XMStoreFloat3(&(psData.cameraForward), camera->getForward());
-	//			XMStoreFloat3(&(psData.cameraRight), camera->getRight());
-	//			XMStoreFloat3(&(psData.cameraUp), camera->getUp());
-	//			psData.bgColor = XMFLOAT3(1.0f, 1.0f, 0.0f);
-	//			//psData.lightCount = lightCount;
-	//			//memcpy(psData.lights, &lights[0], sizeof(Light) * MAX_LIGHTS);
-	//			//// Send this to a chunk of the constant buffer heap
-	//			//// and grab the GPU handle for it so we can set it for this draw
-	//			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
-	//				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-	//					(void*)(&psData), sizeof(PixelShaderExternalData));
-	//			//// Set this constant buffer handle
-	//			//// Note: This assumes that descriptor table 1 is the
-	//			//// place to put this particular descriptor. This
-	//			//// is based on how we set up our root signature.
-	//			commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
-	//		}
-
-	//		// Set the SRV descriptor handle for this material's textures
-	//		// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
-	//		commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
-
-	//		// Grab the vertex buffer view and index buffer view from this entity�s mesh
-	//		vbView = thisEntity->GetMesh()->GetVertBufferView();
-	//		ibView = thisEntity->GetMesh()->GetIndexBufferView();
-
-	//		//Set them using IASetVertexBuffers() and IASetIndexBuffer()
-	//		commandList->IASetVertexBuffers(0, 1, &vbView);
-	//		commandList->IASetIndexBuffer(&ibView);
-
-	//		// Call DrawIndexedInstanced() using the index count of this entity�s mesh
-	//		commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-	//	}
+		//		// Call DrawIndexedInstanced() using the index count of this entity�s mesh
+		//		commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
+		//	}
 
 
-	//	renderImGui();
-	//	//Present
-	//	{
-	//		
-	//		// Transition back to present
-	//		D3D12_RESOURCE_BARRIER rb = {};
-	//		rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	//		rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	//		rb.Transition.pResource = currentBackBuffer.Get();
-	//		rb.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	//		rb.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	//		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	//		commandList->ResourceBarrier(1, &rb);
+		//	renderImGui();
+		//	//Present
+		//	{
+		//		
+		//		// Transition back to present
+		//		D3D12_RESOURCE_BARRIER rb = {};
+		//		rb.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		//		rb.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		//		rb.Transition.pResource = currentBackBuffer.Get();
+		//		rb.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		//		rb.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+		//		rb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		//		commandList->ResourceBarrier(1, &rb);
 
-	//		// Must occur BEFORE present
-	//		dx12HelperInst.CloseAndExecuteCommandList();
-	//		// Present the current back buffer
-	//		swapChain->Present(vsync ? 1 : 0, 0);
-	//		//// Figure out which buffer is next
-	//		//currentSwapBuffer++;
-	//		//if (currentSwapBuffer >= numBackBuffers)
-	//		//	currentSwapBuffer = 0;
-	//		currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
-	//	}
-	//}
+		//		// Must occur BEFORE present
+		//		dx12HelperInst.CloseAndExecuteCommandList();
+		//		// Present the current back buffer
+		//		swapChain->Present(vsync ? 1 : 0, 0);
+		//		//// Figure out which buffer is next
+		//		//currentSwapBuffer++;
+		//		//if (currentSwapBuffer >= numBackBuffers)
+		//		//	currentSwapBuffer = 0;
+		//		currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
+		//	}
+		//}
+	}
 }

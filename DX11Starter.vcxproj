@@ -146,9 +146,11 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="RaytracingHelper.cpp" />
+    <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="SDFRenderer.cpp" />
     <ClCompile Include="sky.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferStructs.h" />
@@ -167,9 +169,11 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="RaytracingHelper.h" />
+    <ClInclude Include="RenderCore.h" />
     <ClInclude Include="SDFRenderer.h" />
     <ClInclude Include="sky.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>

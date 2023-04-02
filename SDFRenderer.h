@@ -7,14 +7,16 @@
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
 #include <memory>
 
+#include "Utils.h"
+
 #include "Camera.h"
-#include "Mesh.h"
 #include "GameEntity.h"
+#include "Mesh.h"
 #include "Material.h"
 #include "BufferStructs.h"
 #include "Lights.h"
 class SDFRenderer //for now, this class is being declared as a friend of DXCore so that we can access the private variables. In the future I want to completely remove the need for Game to inherit from DXCore because this is tiresome
-	//: public DXCore //i dont know if this is a good idea yet but sure lets go with this for now
+	: public RenderCore //i dont know if this is a good idea yet but sure lets go with this for now
 { //Probably *not* going to work to inherit from dxcore. remember how the asset manager was a pain this way? Probably going to have to do something like that with shaders being initialized in game and then sent over here. ugh
 	//other option is to pull out stuff that this needs into its own singleton? that sounds like it could break a lot of stuff though
 
@@ -35,40 +37,52 @@ class SDFRenderer //for now, this class is being declared as a friend of DXCore 
 	*/
 
 public:
-	SDFRenderer(
-		bool vsync,
-		unsigned int numBackBuffers,
-		unsigned int currentSwapBuffer,
-		Microsoft::WRL::ComPtr<ID3D12Device> device,
-		Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain,
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& commandAllocators,
-		Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList,
-		unsigned int rtvDescriptorSize,
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap,
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap,
-		ID3D12DescriptorHeap* srvHeap,
-		D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandles,
-		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,
-		Microsoft::WRL::ComPtr<ID3D12Resource>& backBuffers,
-		Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer,
-		D3D12_VIEWPORT viewport,
-		D3D12_RECT scissorRect,
-		std::shared_ptr<Camera> camera,
-		Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode,
-		Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode
-	);
+	//SDFRenderer(
+	//	bool vsync,
+	//	unsigned int numBackBuffers,
+	//	unsigned int currentSwapBuffer,
+	//	Microsoft::WRL::ComPtr<ID3D12Device> device,
+	//	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain,
+	//	Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& commandAllocators,
+	//	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
+	//	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList,
+	//	unsigned int rtvDescriptorSize,
+	//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap,
+	//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap,
+	//	ID3D12DescriptorHeap* srvHeap,
+	//	D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandles,
+	//	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,
+	//	Microsoft::WRL::ComPtr<ID3D12Resource>& backBuffers,
+	//	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer,
+	//	D3D12_VIEWPORT viewport,
+	//	D3D12_RECT scissorRect,
+	//	std::shared_ptr<Camera> camera,
+	//	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode,
+	//	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode
+	//);
 
 	//this will be the only ctor if "friend" refactoring works as intended
-	SDFRenderer(
-		Game* game,
+	//SDFRenderer(
+	//	//Game* game,
+	//	bool vsync,
+	//	std::shared_ptr<Camera> camera
+	//);
+
+	void Init(
 		bool vsync,
 		std::shared_ptr<Camera> camera
 	);
 
 	~SDFRenderer();
 
-	void Render();
+	//going to have this take in some variables Just for Now, because the need to do this will probably change as the project evolves
+	void Render(
+		std::vector<std::shared_ptr<GameEntity>> entities, 
+		float color[4], 
+		float sphereSize,
+		float lightPos[3],
+		float spherePos[3]
+		);
 
 private:
 	//Microsoft::WRL::ComPtr<ID3D12Device> device;
@@ -96,19 +110,20 @@ private:
 	//from game, not in DXCore at all
 	bool vsync;
 	std::shared_ptr<Camera> camera;
-	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
-	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
 	
 	//definitely would not use traditional entities, but maybe would add another entity type later
 	//same with materials, lights, etc
 
 	//DXCore dxCore;
-	Game* game; //uuuh heck apparently dxcore is abstract or something??
+	//Game* game; //uuuh heck apparently dxcore is abstract or something??
 #pragma endregion
+	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
+	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
-
+	D3D12_VERTEX_BUFFER_VIEW vbView;
+	D3D12_INDEX_BUFFER_VIEW ibView;
 
 
 	void CreateRootSigAndPipelineState();

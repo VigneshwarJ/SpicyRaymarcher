@@ -13,10 +13,12 @@
 #include "Lights.h"
 #include "SDFRenderer.h"
 
+#include "Utils.h"
+
 class Game 
 	: public DXCore
 {
-	friend class SDFRenderer;
+	//friend class SDFRenderer;
 
 public:
 	Game(HINSTANCE hInstance);
@@ -85,7 +87,7 @@ private:
 	bool raytracing;
 
 	//SDF variables
-	std::shared_ptr<SDFRenderer> sdfRenderer;
+	std::shared_ptr<RenderCore> sdfRenderer;
 	
 };
 

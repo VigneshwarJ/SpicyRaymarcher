@@ -7,6 +7,9 @@
 #include <dxgi1_6.h>
 #include <string>
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
+#include <memory>
+
+#include "RenderCore.h"
 
 // We can include the correct library files here
 // instead of in Visual Studio settings if we want
@@ -15,7 +18,7 @@
 
 class DXCore
 {
-	friend class SDFRenderer;
+	//friend class SDFRenderer;
 public:
 	DXCore(
 		HINSTANCE hInstance,		// The application's handle
@@ -65,37 +68,38 @@ protected:
 	// Helpful if we want to pause while not the active window
 	bool hasFocus;
 
+	std::shared_ptr<RenderCore> renderer; //this is not ideal for flexibility now that i think about it. but again, time constraints
 	// DirectX related objects and variables
-	static const unsigned int numBackBuffers = 3;
-	unsigned int currentSwapBuffer;
-	D3D_FEATURE_LEVEL dxFeatureLevel;
+	//static const unsigned int numBackBuffers = 3;
+	//unsigned int currentSwapBuffer;
+	//D3D_FEATURE_LEVEL dxFeatureLevel;
 	Microsoft::WRL::ComPtr<ID3D12Device> device;
-	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[numBackBuffers];
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList;
-	unsigned int rtvDescriptorSize;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
-	ID3D12DescriptorHeap* srvHeap;
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[numBackBuffers];
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	Microsoft::WRL::ComPtr<ID3D12Resource> backBuffers[numBackBuffers];
-	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer;
-	D3D12_VIEWPORT viewport;
-	D3D12_RECT scissorRect;
+	//Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+	//Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[numBackBuffers];
+	//Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
+	//Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList;
+	//unsigned int rtvDescriptorSize;
+	//Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
+	//Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
+	//ID3D12DescriptorHeap* srvHeap;
+	//D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[numBackBuffers];
+	//D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	//Microsoft::WRL::ComPtr<ID3D12Resource> backBuffers[numBackBuffers];
+	//Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer;
+	//D3D12_VIEWPORT viewport;
+	//D3D12_RECT scissorRect;
 
 	//breadcrumb: either use just make this a friend of the SDF renderer, or refactor to a "render core" that has these dx things and probably stuff with the helper
 
 	// Helper function for allocating a console window
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
-	// Helpers for determining the actual path to the executable
-	std::string GetExePath();
-	std::wstring GetExePath_Wide();
+	//// Helpers for determining the actual path to the executable
+	//std::string GetExePath();
+	//std::wstring GetExePath_Wide();
 
-	std::string GetFullPathTo(std::string relativeFilePath);
-	std::wstring GetFullPathTo_Wide(std::wstring relativeFilePath);
+	//std::string GetFullPathTo(std::string relativeFilePath);
+	//std::wstring GetFullPathTo_Wide(std::wstring relativeFilePath);
 
 
 
@@ -114,5 +118,7 @@ private:
 
 	void UpdateTimer();			// Updates the timer for this frame
 	void UpdateTitleBarStats();	// Puts debug info in the title bar
+	
+	void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter);
 };
 
