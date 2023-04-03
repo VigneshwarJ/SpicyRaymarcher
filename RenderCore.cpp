@@ -311,6 +311,10 @@ void RenderCore::OnResize(int width, int height)
 
 void RenderCore::RenderImGui()
 {
+	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap =
+		dx12HelperInst.GetCBVSRVDescriptorHeap();
+
 	ImGui::Render();
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -319,7 +323,7 @@ void RenderCore::RenderImGui()
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	commandList->SetDescriptorHeaps(1, &srvHeap);
+	commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
