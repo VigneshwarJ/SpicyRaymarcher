@@ -131,10 +131,10 @@ void SDFRenderer::Render(
 	ImGui::NewFrame();
 
 	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
-	//&commandAllocators[currentSwapBuffer]->Reset();
-	//commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
-	dx12HelperInst.GetAllocatorByIndex(currentSwapBuffer)->Reset();
-	commandList->Reset(dx12HelperInst.GetAllocatorByIndex(currentSwapBuffer).Get(), 0);
+	commandAllocators[currentSwapBuffer]->Reset();
+	commandList->Reset(commandAllocators[currentSwapBuffer].Get(), 0);
+	//dx12HelperInst.GetAllocatorByIndex(currentSwapBuffer)->Reset();
+	//commandList->Reset(dx12HelperInst.GetAllocatorByIndex(currentSwapBuffer).Get(), 0);
 
 
 	// Grab the current back buffer for this frame
@@ -170,23 +170,23 @@ void SDFRenderer::Render(
 			0, 0); // No scissor rects
 	}
 
-	//{
-	//	//io.WantCaptureMouse = true;
-	//	static float f = 0.0f;
+	{
+		//io.WantCaptureMouse = true;
+		static float f = 0.0f;
 
-	//	ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
+		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
 
 
-	//	ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
+		ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
 
-	//	ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
-	//	ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
+		ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
+		ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
 
-	//	ImGui::ColorEdit3("color", color);
+		ImGui::ColorEdit3("color", color);
 
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//	ImGui::End();
-	//}
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
 	
 	// Rendering here!
 	{
@@ -308,7 +308,7 @@ void SDFRenderer::CreateRootSigAndPipelineState()
 		D3DReadFileToBlob(Utils::GetFullPathTo_Wide(L"RaymarchPS.cso").c_str(), pixelShaderByteCode.GetAddressOf());
 	}
 	// Input layout
-	const unsigned int inputElementCount = 4;
+	const unsigned int inputElementCount = 1;
 	D3D12_INPUT_ELEMENT_DESC inputElements[inputElementCount] = {};
 	{
 		inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;

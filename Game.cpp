@@ -68,7 +68,6 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	InitSDFRenderer();
 
 
 	//// Attempt to initialize DXR
@@ -92,14 +91,10 @@ void Game::Init()
 	//CreateRootSigAndPipelineState(); //this is the non-sdf one
 	CreateBasicGeometry();
 
-	CreateMaterials();
-
-	CreateEntities();
-	PlaceEntities();
 
 	// Last step in raytracing setup is to create the accel structures,
 	// which requires mesh data.  Currently just a single mesh is handled!
-	CreateAccelerationStructures();
+	//CreateAccelerationStructures();
 
 	//RandomLighting();
 	Light point = {};
@@ -127,6 +122,11 @@ void Game::Init()
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
 
+	InitSDFRenderer();
+	CreateMaterials();
+
+	CreateEntities();
+	PlaceEntities();
 	// I put this in the sdfrenderer init method for now
 	//// Ensure the command list is closed going into Draw for the first time
 	//commandList->Close();
@@ -894,23 +894,23 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	{//this might not be right but i am actually pretty sure that you can do this part anywhere during the frame and then just call imgui render whenever that needs to happen (so actually this should probably happen outside of draw)
-		static float f = 0.0f;
-		static int counter = 0;
+	//{//this might not be right but i am actually pretty sure that you can do this part anywhere during the frame and then just call imgui render whenever that needs to happen (so actually this should probably happen outside of draw)
+	//	static float f = 0.0f;
+	//	static int counter = 0;
 
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+	//	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Raytracing", &raytracing);      // Edit bools storing our window open/close state
+	//	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+	//	ImGui::Checkbox("Raytracing", &raytracing);      // Edit bools storing our window open/close state
 
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
+	//	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+	//		counter++;
+	//	ImGui::SameLine();
+	//	ImGui::Text("counter = %d", counter);
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
-	}
+	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	//	ImGui::End();
+	//}
 	//RenderSDF();
 	sdfRenderer->Render(entities, color, sphereSize, lightPos, spherePos);
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
