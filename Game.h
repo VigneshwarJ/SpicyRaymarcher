@@ -42,7 +42,7 @@ private:
 	void RenderSDF(); //once the other renderer class is set up, this can be removed
 
 	// Initialization helper methods - feel free to customize, combine, etc.
-	void CreateRootSigAndPipelineState();
+	//void CreateRootSigAndPipelineState();
 	void CreateBasicGeometry();
 	void CreateEntities();
 	void CreateMeshes();
@@ -63,8 +63,8 @@ private:
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
 	// Buffers to hold actual geometry data
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
+	//Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+	//Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW vbView;

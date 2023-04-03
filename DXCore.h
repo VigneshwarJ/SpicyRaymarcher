@@ -9,7 +9,8 @@
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
 #include <memory>
 
-#include "RenderCore.h"
+//#include "RenderCore.h"
+class RenderCore;
 
 // We can include the correct library files here
 // instead of in Visual Studio settings if we want
@@ -44,10 +45,10 @@ public:
 	HRESULT InitWindow();
 	HRESULT InitDirectX();
 	void InitializeImGui();
-	void renderImGui();
+	//void renderImGui();
 	HRESULT Run();
 	void Quit();
-	virtual void OnResize();
+	//virtual void OnResize();
 
 	// Pure virtual methods for setup and game functionality
 	virtual void Init() = 0;
@@ -118,7 +119,6 @@ private:
 
 	void UpdateTimer();			// Updates the timer for this frame
 	void UpdateTitleBarStats();	// Puts debug info in the title bar
-	
-	void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter);
+
 };
 

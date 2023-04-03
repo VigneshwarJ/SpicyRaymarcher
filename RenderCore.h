@@ -10,7 +10,8 @@
 #include <memory>
 
 #include "Camera.h"
-#include "GameEntity.h"
+//#include "GameEntity.h"
+class GameEntity;
 #include "Mesh.h"
 #include "Material.h"
 #include "BufferStructs.h"
@@ -47,6 +48,8 @@ public:
 		float lightPos[3],
 		float spherePos[3]
 	) = 0;
+
+	virtual Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() = 0;
 
 	//make the frame-by-frame rendering functions pure virtual?
 	

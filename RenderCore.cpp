@@ -7,6 +7,7 @@
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 
+#include "GameEntity.h" //forward declaration for this is used in RenderCore.h
 
 // --------------------------------------------------------
 // Initializes DirectX, which requires a window.  This method

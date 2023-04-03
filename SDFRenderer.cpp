@@ -459,8 +459,7 @@ void SDFRenderer::CreateRootSigAndPipelineState()
 		// -- Misc ---
 		psoDesc.SampleMask = 0xffffffff;
 		// Create the pipe state object
-		device->CreateGraphicsPipelineState(&psoDesc,
-			IID_PPV_ARGS(pipelineState.GetAddressOf()));
+		device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pipelineState.GetAddressOf()));
 
 	}
 }

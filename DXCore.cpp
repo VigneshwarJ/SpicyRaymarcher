@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 
+#include "RenderCore.h" //forward declaration for this is used in DXCore.h
+
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // Define the static instance variable so our OS-level 
@@ -898,7 +900,7 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		// If DX is initialized, resize 
 		// our required buffers
 		if (device) 
-			OnResize();
+			renderer->OnResize(width, height);
 
 		return 0;
 

@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Utils.h"
+#include "RenderCore.h"
 
 #include "Camera.h"
 #include "GameEntity.h"
@@ -83,6 +84,8 @@ public:
 		float lightPos[3],
 		float spherePos[3]
 		);
+
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() { return pipelineState; };
 
 private:
 	//Microsoft::WRL::ComPtr<ID3D12Device> device;
