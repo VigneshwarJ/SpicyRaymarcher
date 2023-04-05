@@ -172,7 +172,7 @@ HRESULT DXCore::InitWindow()
 
 void DXCore::InitializeImGui()
 {
-	ID3D12DescriptorHeap* srvHeap = renderer->GetSrvHeap();
+	ID3D12DescriptorHeap* srvHeap = nullptr;
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -190,6 +190,7 @@ void DXCore::InitializeImGui()
 		DXGI_FORMAT_R8G8B8A8_UNORM, srvHeap,
 		srvHeap->GetCPUDescriptorHandleForHeapStart(),
 		srvHeap->GetGPUDescriptorHandleForHeapStart());
+	renderer->SetSrvHeap(srvHeap);
 }
 
 //void DXCore::renderImGui()

@@ -59,6 +59,7 @@ public:
 	//that was the plan but enough stuff outside this class (in both game and dxcore) that its most practical right now to just have a getter for the device
 	Microsoft::WRL::ComPtr<ID3D12Device> GetDevice() { return device; };
 	ID3D12DescriptorHeap* GetSrvHeap() { return srvHeap; }; //similar case here
+	void SetSrvHeap(ID3D12DescriptorHeap* heap) { srvHeap = heap; }
 	D3D_FEATURE_LEVEL GetDXFeatureLevel() { return dxFeatureLevel; };//aaand here too
 protected:
 

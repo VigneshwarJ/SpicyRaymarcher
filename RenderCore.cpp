@@ -324,11 +324,11 @@ void RenderCore::RenderImGui()
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-	commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf()); //this one allows the scene to render, but 
-																	   //according to the errors it seems to be the wrong
-																	   //descriptor heap
+	//commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf()); //this one allows the scene to render, but 
+	//																   //according to the errors it seems to be the wrong
+	//																   //descriptor heap
 
-	//commandList->SetDescriptorHeaps(1, &srvHeap); //srvHeap keeps pointing to null 
+	commandList->SetDescriptorHeaps(1, &srvHeap); //srvHeap keeps pointing to null 
 												  //here for some reason, even though it 
 												  //doesn't seem to be null before this is called
 	
