@@ -46,7 +46,6 @@ private:
 	void CreateBasicGeometry();
 	void CreateEntities();
 	void CreateMeshes();
-	void PlaceEntities();
 	void LoadTextures();
 	void CreateMaterials();
 	

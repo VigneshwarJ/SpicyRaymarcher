@@ -119,6 +119,7 @@ void Camera::UpdateViewMatrix()
 // Updates the projection matrix
 void Camera::UpdateProjectionMatrix(float aspectRatio)
 {
+	m_AspectRatio = aspectRatio;
 	XMMATRIX P = XMMatrixPerspectiveFovLH(
 		0.25f * XM_PI,		// Field of View Angle
 		aspectRatio,		// Aspect ratio

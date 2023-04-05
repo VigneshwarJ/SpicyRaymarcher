@@ -38,37 +38,7 @@ class SDFRenderer //for now, this class is being declared as a friend of DXCore 
 	*/
 
 public:
-	//SDFRenderer(
-	//	bool vsync,
-	//	unsigned int numBackBuffers,
-	//	unsigned int currentSwapBuffer,
-	//	Microsoft::WRL::ComPtr<ID3D12Device> device,
-	//	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain,
-	//	Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& commandAllocators,
-	//	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
-	//	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList,
-	//	unsigned int rtvDescriptorSize,
-	//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap,
-	//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap,
-	//	ID3D12DescriptorHeap* srvHeap,
-	//	D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandles,
-	//	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,
-	//	Microsoft::WRL::ComPtr<ID3D12Resource>& backBuffers,
-	//	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer,
-	//	D3D12_VIEWPORT viewport,
-	//	D3D12_RECT scissorRect,
-	//	std::shared_ptr<Camera> camera,
-	//	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode,
-	//	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode
-	//);
-
-	//this will be the only ctor if "friend" refactoring works as intended
-	//SDFRenderer(
-	//	//Game* game,
-	//	bool vsync,
-	//	std::shared_ptr<Camera> camera
-	//);
-
+	
 	void Init(
 		bool vsync,
 		std::shared_ptr<Camera> camera
@@ -91,24 +61,6 @@ private:
 	//Microsoft::WRL::ComPtr<ID3D12Device> device;
 
 #pragma region Stuff from DXCore/Game
-	//stuff that is at least for now is just going to be passed in the constructor here from game
-	//unsigned int numBackBuffers;
-	//unsigned int currentSwapBuffer;
-	//Microsoft::WRL::ComPtr<ID3D12Device> device;
-	//Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-	//Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators;// [numBackBuffers] ; //cant init here with an undefined variable. shouldnt be necessary though since this will just be a copy of whatever is already defined
-	//Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
-	//Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList;
-	//unsigned int rtvDescriptorSize;
-	//Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
-	//Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
-	////ID3D12DescriptorHeap* srvHeap;
-	//D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles;// [numBackBuffers] ;
-	//D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	//Microsoft::WRL::ComPtr<ID3D12Resource> backBuffers;// [numBackBuffers] ;
-	//Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer;
-	//D3D12_VIEWPORT viewport;
-	//D3D12_RECT scissorRect;
 
 	//from game, not in DXCore at all
 	bool vsync;
@@ -117,9 +69,8 @@ private:
 	//definitely would not use traditional entities, but maybe would add another entity type later
 	//same with materials, lights, etc
 
-	//DXCore dxCore;
-	//Game* game; //uuuh heck apparently dxcore is abstract or something??
 #pragma endregion
+
 	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode;
 	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode;
 

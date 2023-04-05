@@ -12,98 +12,20 @@
 #include <d3dcompiler.h>
 
 
-//
-//SDFRenderer::SDFRenderer(
-//	bool vsync,
-//	unsigned int numBackBuffers,
-//	unsigned int currentSwapBuffer,
-//	Microsoft::WRL::ComPtr<ID3D12Device> device,
-//	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain,
-//	Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& commandAllocators,
-//	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
-//	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>commandList,
-//	unsigned int rtvDescriptorSize,
-//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap,
-//	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap,
-//	ID3D12DescriptorHeap* srvHeap,
-//	D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandles,
-//	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,
-//	Microsoft::WRL::ComPtr<ID3D12Resource>& backBuffers,
-//	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilBuffer,
-//	D3D12_VIEWPORT viewport,
-//	D3D12_RECT scissorRect,
-//	std::shared_ptr<Camera> camera,
-//	Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderByteCode,
-//	Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderByteCode
-//)
-//{
-//	//this->vsync = vsync;
-//	//this->numBackBuffers = numBackBuffers;
-//	//this->currentSwapBuffer = currentSwapBuffer;
-//	//this->device = device;
-//	//this->swapChain = swapChain;
-//	//this->commandAllocators = commandAllocators;
-//	//this->commandQueue = commandQueue;
-//	//this->commandList = commandList;
-//	//this->rtvDescriptorSize = rtvDescriptorSize;
-//	//this->rtvHeap = rtvHeap;
-//	//this->dsvHeap = dsvHeap;
-//	////this->srvHeap = srvHeap;
-//	//this->rtvHandles = rtvHandles;
-//	//this->dsvHandle = dsvHandle;
-//	//this->backBuffers = backBuffers;
-//	//this->depthStencilBuffer = depthStencilBuffer;
-//	//this->viewport = viewport;
-//	//this->scissorRect = scissorRect;
-//	//this->vertexShaderByteCode = vertexShaderByteCode;
-//	//this->pixelShaderByteCode = pixelShaderByteCode;
-//
-//	//this->camera = camera;
-//
-//
-//	//CreateRootSigAndPipelineState();
-//}
-//
-//SDFRenderer::SDFRenderer(
-//	Game* game,
-//	bool vsync,
-//	std::shared_ptr<Camera> camera
-//)
-//{
-//	//this->numBackBuffers = game->numBackBuffers;
-//	//this->currentSwapBuffer = game->currentSwapBuffer;
-//	//this->device = game->device;
-//	//this->swapChain = game->swapChain;
-//	//this->commandAllocators = game->commandAllocators;
-//	//this->commandQueue = game->commandQueue;
-//	//this->commandList = game->commandList;
-//	//this->rtvDescriptorSize = game->rtvDescriptorSize;
-//	//this->rtvHeap = game->rtvHeap;
-//	//this->dsvHeap = game->dsvHeap;
-//	////this->srvHeap = srvHeap;
-//	//this->rtvHandles = game->rtvHandles;
-//	//this->dsvHandle = game->dsvHandle;
-//	//this->backBuffers = game->backBuffers;
-//	//this->depthStencilBuffer = game->depthStencilBuffer;
-//	//this->viewport = game->viewport;
-//	//this->scissorRect = game->scissorRect;
-//	//this->game = game;
-//
-//	this->vsync = vsync;
-//	//this->vertexShaderByteCode = vertexShaderByteCode;
-//	//this->pixelShaderByteCode = pixelShaderByteCode;
-//	this->camera = camera;
-//
-//
-//	CreateRootSigAndPipelineState();
-//}
-
 void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
 {
 	this->vsync = vsync;
 	this->camera = camera;
 
 	CreateRootSigAndPipelineState();
+	float vertex_data_array[] = {
+   0.0f,  0.5f,  0.0f, // point at top
+   0.5f, -0.5f,  0.0f, // point at bottom-right
+  -0.5f, -0.5f,  0.0f, // point at bottom-left
+	};
+	UINT vertex_stride = 3 * sizeof(float);
+	UINT vertex_offset = 0;
+	UINT vertex_count = 3;
 
 	// Ensure the command list is closed going into Draw for the first time
 	commandList->Close();
@@ -316,22 +238,6 @@ void SDFRenderer::CreateRootSigAndPipelineState()
 		inputElements[0].SemanticName = "SV_VertexID"; // Name must match semantic in shader
 		inputElements[0].SemanticIndex = 0; // This is the first semantic of this type
 
-		//inputElements[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		//inputElements[0].SemanticName = "POSITION"; // Name must match semantic in shader
-		//inputElements[0].SemanticIndex = 0; // This is the first POSITION semantic
-		//inputElements[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT; // R32 G32 = float2
-		//inputElements[1].SemanticName = "TEXCOORD";
-		//inputElements[1].SemanticIndex = 0; // This is the first TEXCOORD semantic
-		//inputElements[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		//inputElements[2].SemanticName = "NORMAL";
-		//inputElements[2].SemanticIndex = 0; // This is the first NORMAL semantic
-		//inputElements[3].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		//inputElements[3].Format = DXGI_FORMAT_R32G32B32_FLOAT; // R32 G32 B32 = float3
-		//inputElements[3].SemanticName = "TANGENT";
-		//inputElements[3].SemanticIndex = 0; // This is the first TANGENT semantic
 	}
 	// Root Signature
 	{

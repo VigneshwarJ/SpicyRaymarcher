@@ -37,7 +37,7 @@ private:
 	DirectX::XMFLOAT4X4 projMatrix;
 	DirectX::XMVECTOR direction;
 	//XMVECTOR up;
-
+	float m_AspectRatio = 16 / 9.0f;
 	Transform transform;
 
 	float movementSpeed;
