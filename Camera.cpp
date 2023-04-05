@@ -65,7 +65,7 @@ void Camera::Update(float dt)
 
 }
 
-DirectX::XMVECTOR Camera::getDirection()  noexcept
+DirectX::XMVECTOR Camera::GetDirection()  noexcept
 {
 	XMFLOAT3 rot = transform.GetPitchYawRoll();
 	XMFLOAT3 pos = transform.GetPosition();
@@ -82,12 +82,12 @@ DirectX::XMVECTOR Camera::getDirection()  noexcept
 
 
 
-DirectX::XMVECTOR Camera::getForward() const noexcept
+DirectX::XMVECTOR Camera::GetForward() const noexcept
 {
-	return XMVector3Cross(getRight(),
+	return XMVector3Cross(GetRight(),
 		getUp());
 }
-DirectX::XMVECTOR Camera::getRight() const noexcept
+DirectX::XMVECTOR Camera::GetRight() const noexcept
 {
 	const XMVECTOR upVector{ 0.0f, 1.0f, 0.0f, 0.0f };
 	return XMVector3Cross(upVector,
@@ -97,7 +97,7 @@ DirectX::XMVECTOR Camera::getRight() const noexcept
 DirectX::XMVECTOR Camera::getUp() const noexcept
 {
 	return XMVector3Cross(direction,
-		getRight());
+		GetRight());
 }
 // Creates a new view matrix based on current position and orientation
 void Camera::UpdateViewMatrix()
@@ -106,7 +106,7 @@ void Camera::UpdateViewMatrix()
 	// This gives us our "look direction"
 	//XMFLOAT3 rot = transform.GetPitchYawRoll();
 	//direction = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rot)));
-	direction = Camera::getDirection();
+	direction = Camera::GetDirection();
 	XMFLOAT3 pos = transform.GetPosition();
 	XMMATRIX view = XMMatrixLookToLH(
 		XMLoadFloat3(&pos),

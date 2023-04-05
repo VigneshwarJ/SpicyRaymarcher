@@ -226,8 +226,8 @@ void SDFRenderer::Render(
 				PixelShaderExternalData psData = {};
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
 				psData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
-				XMStoreFloat3(&(psData.cameraForward), camera->getForward());
-				XMStoreFloat3(&(psData.cameraRight), camera->getRight());
+				XMStoreFloat3(&(psData.cameraForward), camera->GetForward());
+				XMStoreFloat3(&(psData.cameraRight), camera->GetRight());
 				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
 				psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
 				psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);

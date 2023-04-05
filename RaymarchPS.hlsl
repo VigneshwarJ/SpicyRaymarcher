@@ -1,4 +1,3 @@
-#include "Lighting.hlsli"
 
 // How many lights could we handle?
 //#define MAX_LIGHTS 128

@@ -21,12 +21,12 @@ public:
 	
 	//https://stackoverflow.com/questions/21467225/how-do-you-determine-the-view-up-vector
 
-	DirectX::XMVECTOR getForward() const noexcept;
-	DirectX::XMVECTOR getDirection()  noexcept;
-	DirectX::XMVECTOR Camera::getRight() const noexcept;
+	DirectX::XMVECTOR GetForward() const noexcept;
+	DirectX::XMVECTOR GetDirection()  noexcept;
+	DirectX::XMVECTOR GetRight() const noexcept;
 
 
-	DirectX::XMVECTOR Camera::getUp() const noexcept;
+	DirectX::XMVECTOR getUp() const noexcept;
 
 
 	Transform* GetTransform();
