@@ -316,24 +316,10 @@ void RenderCore::RenderImGui()
 		dx12HelperInst.GetCBVSRVDescriptorHeap();
 
 	ImGui::Render();
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = backBuffers[currentSwapBuffer].Get();
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-	//commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf()); //this one allows the scene to render, but 
-	//																   //according to the errors it seems to be the wrong
-	//																   //descriptor heap
 
 	commandList->SetDescriptorHeaps(1, &srvHeap); //srvHeap keeps pointing to null 
 												  //here for some reason, even though it 
 												  //doesn't seem to be null before this is called
 	
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	commandList->ResourceBarrier(1, &barrier);
 }

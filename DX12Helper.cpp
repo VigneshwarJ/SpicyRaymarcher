@@ -437,7 +437,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DX12Helper::CreateStaticBuffer(
 		&props,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
-		D3D12_RESOURCE_STATE_COPY_DEST, // Will eventually be "common", but we're copying first
+		D3D12_RESOURCE_STATE_COMMON, // Will eventually be "common", but we're copying first
 		0,
 		IID_PPV_ARGS(buffer.GetAddressOf()));
 	// Now create an intermediate upload heap for copying initial data
