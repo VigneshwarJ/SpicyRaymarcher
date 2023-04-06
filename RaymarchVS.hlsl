@@ -1,10 +1,3 @@
-cbuffer perFrame : register (b0)
-{
-	matrix world;
-	matrix worldInverseTranspose;
-	matrix view;
-	matrix projection;
-};
 
 
 // Defines the output data of our vertex shader

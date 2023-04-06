@@ -1,10 +1,11 @@
 #include "Material.h"
 #include "DX12Helper.h"
 
-Material::Material(Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline, DirectX::XMFLOAT4 colorTint, DirectX::XMFLOAT2 uvScale, DirectX::XMFLOAT2 uvOffset)
+TextureMaterial::TextureMaterial(Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline, DirectX::XMFLOAT4 colorTint, DirectX::XMFLOAT2 uvScale, DirectX::XMFLOAT2 uvOffset)
+	:Material(colorTint,1.0f)
+
 {
 	this->pipelineState = pipeline;
-	this->colorTint = colorTint;
 	this->uvScale = uvScale;
 	this->uvOffset = uvOffset;
 	finalized = false;
@@ -14,7 +15,7 @@ Material::Material(Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline, DirectX
 	ZeroMemory(textureSRVsBySlot, sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * 128);
 }
 
-void Material::AddTexture(D3D12_CPU_DESCRIPTOR_HANDLE srv, int slot)
+void TextureMaterial::AddTexture(D3D12_CPU_DESCRIPTOR_HANDLE srv, int slot)
 {
 	// Valid slot?
 	if (finalized || slot < 0 || slot >= 128)
@@ -25,7 +26,7 @@ void Material::AddTexture(D3D12_CPU_DESCRIPTOR_HANDLE srv, int slot)
 	highestSRVIndex = max(highestSRVIndex, slot);
 }
 
-void Material::FinalizeMaterial()
+void TextureMaterial::FinalizeMaterial()
 {
 	if (finalized) return; //dont do anything if this is already finalized
 
@@ -44,27 +45,27 @@ void Material::FinalizeMaterial()
 	finalized = true;
 }
 
-Microsoft::WRL::ComPtr<ID3D12PipelineState> Material::GetPipelineState()
+Microsoft::WRL::ComPtr<ID3D12PipelineState> TextureMaterial::GetPipelineState()
 {
 	return pipelineState;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE Material::GetFinalGPUHandleForTextures()
+D3D12_GPU_DESCRIPTOR_HANDLE TextureMaterial::GetFinalGPUHandleForTextures()
 {
 	return finalGPUHandleForSRVs;
 }
 
-DirectX::XMFLOAT4 Material::GetColorTint()
+DirectX::XMFLOAT4 TextureMaterial::GetColorTint()
 {
 	return colorTint;
 }
 
-DirectX::XMFLOAT2 Material::GetUVScale()
+DirectX::XMFLOAT2 TextureMaterial::GetUVScale()
 {
 	return uvScale;
 }
 
-DirectX::XMFLOAT2 Material::GetUVOffset()
+DirectX::XMFLOAT2 TextureMaterial::GetUVOffset()
 {
 	return uvOffset;
 }

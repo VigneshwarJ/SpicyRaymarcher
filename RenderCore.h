@@ -41,13 +41,7 @@ public:
 	//this is for the SDFRenderer Init, which i would like to get rid of but im big tired tbh
 	virtual void Init(bool vsync, std::shared_ptr<Camera> camera) = 0;
 
-	virtual void Render(
-		std::vector<std::shared_ptr<GameEntity>> entities,
-		float color[4],
-		float sphereSize,
-		float lightPos[3],
-		float spherePos[3]
-	) = 0;
+	virtual void Render() = 0;
 
 	virtual Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() = 0;
 

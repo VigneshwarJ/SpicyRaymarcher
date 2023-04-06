@@ -10,6 +10,7 @@
 // Needed for a helper function to read compiled shader files from the hard drive
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
+#include "SDFEntity.h"
 
 
 void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
@@ -19,7 +20,7 @@ void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
 
 	CreateRootSigAndPipelineState();
 
-
+	createTriangleForScreenQuad();
 	// Ensure the command list is closed going into Draw for the first time
 	commandList->Close();
 }
@@ -31,13 +32,7 @@ SDFRenderer::~SDFRenderer()
 // --------------------------------------------------------
 // Clear the screen, redraw everything, present to the user
 // --------------------------------------------------------
-void SDFRenderer::Render(
-	std::vector<std::shared_ptr<GameEntity>> entities,
-	float color[4],
-	float sphereSize,
-	float lightPos[3],
-	float spherePos[3]
-)
+void SDFRenderer::Render()
 {
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
@@ -89,18 +84,16 @@ void SDFRenderer::Render(
 		//io.WantCaptureMouse = true;
 		static float f = 0.0f;
 
-		ImGui::Begin("Settings");                          // Create a window called "Hello, world!" and append into it.
+		ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
+		SDFEntity::GetSDFEntity()->DisplaySDFSettings();
 
+		
 
-		ImGui::SliderFloat("Sphere size", &sphereSize, 0, 100);
-
-		ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
-		ImGui::SliderFloat3("sphere position", spherePos, -100.0, 100.0);
-
-		ImGui::ColorEdit3("color", color);
+	
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
+		//ImGui::End();
 	}
 
 	// Rendering here!
@@ -122,9 +115,7 @@ void SDFRenderer::Render(
 
 
 		{
-			VertexShaderExternalData externalData = {};
-			externalData.view = camera->GetView();
-			externalData.projection = camera->GetProjection();
+			RaymarchVSExternalData externalData = {};
 
 			//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
@@ -133,24 +124,27 @@ void SDFRenderer::Render(
 		}
 		// Pixel shader data and cbuffer setup
 		{
-			PixelShaderExternalData psData = {};
+			 // TODO: should be made as member variable 
+
+			/*
+			TODO: Below should be moved inside Camera class
+			*/
+			
+			auto entity = SDFEntity::GetSDFEntity();
+			auto psData = entity->GetRayMarchPSData();
 			XMFLOAT3 pos = camera->GetTransform()->GetPosition();
-			psData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
-			XMStoreFloat3(&(psData.cameraForward), camera->GetForward());
-			XMStoreFloat3(&(psData.cameraRight), camera->GetRight());
-			XMStoreFloat3(&(psData.cameraUp), camera->getUp());
-			psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
-			psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);
-			psData.lightPosition = XMFLOAT3A(lightPos);
-			psData.sphereRadius = sphereSize;
-			psData.spherePosition = XMFLOAT3A(spherePos);
+			psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
+			XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
+			XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
+			XMStoreFloat3(&(psData->cameraUp), camera->getUp());
+			psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
 
 
 			//// Send this to a chunk of the constant buffer heap
 			//// and grab the GPU handle for it so we can set it for this draw
 			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
 				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-					(void*)(&psData), sizeof(PixelShaderExternalData));
+					(void*)(psData), sizeof(RaymarchPSExternalData));
 			//// Set this constant buffer handle
 			//// Note: This assumes that descriptor table 1 is the
 			//// place to put this particular descriptor. This

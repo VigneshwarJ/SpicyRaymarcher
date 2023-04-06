@@ -45,13 +45,7 @@ public:
 	~SDFRenderer();
 
 	//going to have this take in some variables Just for Now, because the need to do this will probably change as the project evolves
-	void Render(
-		std::vector<std::shared_ptr<GameEntity>> entities, 
-		float color[4], 
-		float sphereSize,
-		float lightPos[3],
-		float spherePos[3]
-		) override;
+	void Render() override;
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() { return pipelineState; };
 

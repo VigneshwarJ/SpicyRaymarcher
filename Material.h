@@ -5,10 +5,21 @@
 //#include "WICTextureLoader.h"
 #include "d3d12.h"
 
+
 class Material
 {
 public:
-	Material(
+	Material (DirectX::XMFLOAT4 color, float specularExponent)
+	:colorTint(color),specularExponent(specularExponent){}
+	DirectX::XMFLOAT4 colorTint;
+	float specularExponent;
+};
+
+
+class TextureMaterial : public Material
+{
+public:
+	TextureMaterial(
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline,
 		DirectX::XMFLOAT4 colorTint,
 		DirectX::XMFLOAT2 uvScale,
@@ -62,7 +73,7 @@ private:
 
 	//void LoadTexture();
 
-	DirectX::XMFLOAT4 colorTint;
+	
 	DirectX::XMFLOAT2 uvScale;
 	DirectX::XMFLOAT2 uvOffset;
 	bool finalized;
@@ -81,6 +92,6 @@ private:
 	//Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 
 
-	float specularExponent;
+	
 };
 

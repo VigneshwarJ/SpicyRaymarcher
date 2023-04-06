@@ -154,6 +154,7 @@
     <ClCompile Include="MeshBasedEntity.cpp" />
     <ClCompile Include="RaytracingHelper.cpp" />
     <ClCompile Include="RenderCore.cpp" />
+    <ClCompile Include="SDFEntity.cpp" />
     <ClCompile Include="SDFRenderer.cpp" />
     <ClCompile Include="sky.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -178,7 +179,9 @@
     <ClInclude Include="MeshBasedEntity.h" />
     <ClInclude Include="RaytracingHelper.h" />
     <ClInclude Include="RenderCore.h" />
+    <ClInclude Include="SDFEntity.h" />
     <ClInclude Include="SDFRenderer.h" />
+    <ClInclude Include="SDFShapes.h" />
     <ClInclude Include="sky.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Utils.h" />

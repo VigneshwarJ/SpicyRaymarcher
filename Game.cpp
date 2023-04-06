@@ -127,7 +127,7 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	// Should create a new entity for sdf structures.
-	sdfRenderer->Render(entities, color, sphereSize, lightPos, spherePos);
+	sdfRenderer->Render();
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
 }
