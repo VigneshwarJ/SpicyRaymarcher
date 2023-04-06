@@ -12,10 +12,8 @@
 
 #include "Camera.h"
 #include "GameEntity.h"
-#include "Mesh.h"
-#include "Material.h"
 #include "BufferStructs.h"
-#include "Lights.h"
+
 class SDFRenderer //for now, this class is being declared as a friend of DXCore so that we can access the private variables. In the future I want to completely remove the need for Game to inherit from DXCore because this is tiresome
 	: public RenderCore //i dont know if this is a good idea yet but sure lets go with this for now
 { //Probably *not* going to work to inherit from dxcore. remember how the asset manager was a pain this way? Probably going to have to do something like that with shaders being initialized in game and then sent over here. ugh
@@ -53,12 +51,13 @@ public:
 		float sphereSize,
 		float lightPos[3],
 		float spherePos[3]
-		);
+		) override;
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() { return pipelineState; };
 
 private:
-	//Microsoft::WRL::ComPtr<ID3D12Device> device;
+
+	void createTriangleForScreenQuad();
 
 #pragma region Stuff from DXCore/Game
 
@@ -76,9 +75,9 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
-	D3D12_VERTEX_BUFFER_VIEW vbView;
-	D3D12_INDEX_BUFFER_VIEW ibView;
 
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW vbView;
 
 	void CreateRootSigAndPipelineState();
 	//I would like to split up the above function into these somehow, but there may not be a way to do that without it being a pain. Let's just get this up and running for now

@@ -39,22 +39,10 @@ private:
 	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
 	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
 	void InitSDFRenderer();
-	void RenderSDF(); //once the other renderer class is set up, this can be removed
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	//void CreateRootSigAndPipelineState();
-	void CreateBasicGeometry();
-	void CreateEntities();
-	void CreateMeshes();
-	void LoadTextures();
-	void CreateMaterials();
 	
-	//for raytracing
-	void CreateAccelerationStructures();
-
-	void RandomLighting();
-	Light RandomPointLight(float minRange, float maxRange, float minIntensity, float maxIntensity);
-
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -83,7 +71,6 @@ private:
 	float sphereSize; 
 	float lightPos[3]; 
 	float spherePos[3]; 
-	bool raytracing;
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;

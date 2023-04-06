@@ -18,14 +18,7 @@ void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
 	this->camera = camera;
 
 	CreateRootSigAndPipelineState();
-	float vertex_data_array[] = {
-   0.0f,  0.5f,  0.0f, // point at top
-   0.5f, -0.5f,  0.0f, // point at bottom-right
-  -0.5f, -0.5f,  0.0f, // point at bottom-left
-	};
-	UINT vertex_stride = 3 * sizeof(float);
-	UINT vertex_offset = 0;
-	UINT vertex_count = 3;
+
 
 	// Ensure the command list is closed going into Draw for the first time
 	commandList->Close();
@@ -109,7 +102,7 @@ void SDFRenderer::Render(
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 	}
-	
+
 	// Rendering here!
 	{
 		// Set overall pipeline state
@@ -126,66 +119,54 @@ void SDFRenderer::Render(
 			dx12HelperInst.GetCBVSRVDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 
-		//// Draw
-		for (int i = 0; i < entities.size(); i++)
+
+
 		{
-			std::shared_ptr<GameEntity> thisEntity = entities[i];
-			std::shared_ptr<Material> mat = thisEntity->GetMaterial();
+			VertexShaderExternalData externalData = {};
+			externalData.view = camera->GetView();
+			externalData.projection = camera->GetProjection();
 
-			commandList->SetPipelineState(mat->GetPipelineState().Get());
-			{
-				VertexShaderExternalData externalData = {};
-				externalData.view = camera->GetView();
-				externalData.projection = camera->GetProjection();
+			//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
+			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
-				//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
-				D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
-
-				commandList->SetGraphicsRootDescriptorTable(0, handleVS);
-			}
-			// Pixel shader data and cbuffer setup
-			{
-				PixelShaderExternalData psData = {};
-				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
-				psData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
-				XMStoreFloat3(&(psData.cameraForward), camera->GetForward());
-				XMStoreFloat3(&(psData.cameraRight), camera->GetRight());
-				XMStoreFloat3(&(psData.cameraUp), camera->getUp());
-				psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
-				psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);
-				psData.lightPosition = XMFLOAT3A(lightPos);
-				psData.sphereRadius = sphereSize;
-				psData.spherePosition = XMFLOAT3A(spherePos);
-
-
-				//// Send this to a chunk of the constant buffer heap
-				//// and grab the GPU handle for it so we can set it for this draw
-				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
-					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-						(void*)(&psData), sizeof(PixelShaderExternalData));
-				//// Set this constant buffer handle
-				//// Note: This assumes that descriptor table 1 is the
-				//// place to put this particular descriptor. This
-				//// is based on how we set up our root signature.
-				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
-			}
-
-			// Set the SRV descriptor handle for this material's textures
-			// Note: This assumes that descriptor table 2 is for textures (as per our root sig)
-			commandList->SetGraphicsRootDescriptorTable(2, mat->GetFinalGPUHandleForTextures());
-
-			// Grab the vertex buffer view and index buffer view from this entity's mesh
-			vbView = thisEntity->GetMesh()->GetVertBufferView();
-			ibView = thisEntity->GetMesh()->GetIndexBufferView();
-
-			// Set them using IASetVertexBuffers() and IASetIndexBuffer()
-			commandList->IASetVertexBuffers(0, 1, &vbView);
-			commandList->IASetIndexBuffer(&ibView);
-
-			// Call DrawIndexedInstanced() using the index count of this entity's mesh
-			commandList->DrawIndexedInstanced(thisEntity->GetMesh()->GetIndexCount(), 1, 0, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-			//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
+			commandList->SetGraphicsRootDescriptorTable(0, handleVS);
 		}
+		// Pixel shader data and cbuffer setup
+		{
+			PixelShaderExternalData psData = {};
+			XMFLOAT3 pos = camera->GetTransform()->GetPosition();
+			psData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
+			XMStoreFloat3(&(psData.cameraForward), camera->GetForward());
+			XMStoreFloat3(&(psData.cameraRight), camera->GetRight());
+			XMStoreFloat3(&(psData.cameraUp), camera->getUp());
+			psData.bgColor = XMFLOAT3A(0.0f, 0.0f, 1.0f);
+			psData.sphereColor = XMFLOAT4(color[0], color[1], color[0], color[0]);
+			psData.lightPosition = XMFLOAT3A(lightPos);
+			psData.sphereRadius = sphereSize;
+			psData.spherePosition = XMFLOAT3A(spherePos);
+
+
+			//// Send this to a chunk of the constant buffer heap
+			//// and grab the GPU handle for it so we can set it for this draw
+			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+					(void*)(&psData), sizeof(PixelShaderExternalData));
+			//// Set this constant buffer handle
+			//// Note: This assumes that descriptor table 1 is the
+			//// place to put this particular descriptor. This
+			//// is based on how we set up our root signature.
+			commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+		}
+
+
+
+		// Set them using IASetVertexBuffers() and IASetIndexBuffer()
+		commandList->IASetVertexBuffers(0, 1, &vbView);
+
+		// Call DrawIndexedInstanced() using the index count of this entity's mesh
+		commandList->DrawInstanced(3, 1, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
+		//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
+
 
 		RenderImGui();
 
@@ -213,6 +194,22 @@ void SDFRenderer::Render(
 			currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
 		}
 	}
+
+}
+
+void SDFRenderer::createTriangleForScreenQuad()
+{
+	float vertex_data_array[] = {
+   0.0f,  0.5f,  0.0f, // point at top
+   0.5f, -0.5f,  0.0f, // point at bottom-right
+  -0.5f, -0.5f,  0.0f, // point at bottom-left
+	};
+	UINT vertex_stride = 3 * sizeof(float);
+	DX12Helper& dx12Helper = DX12Helper::GetInstance();
+	vertexBuffer = dx12Helper.CreateStaticBuffer(vertex_stride, 3, &vertex_data_array[0]);
+	vbView.StrideInBytes = vertex_stride;
+	vbView.SizeInBytes = vertex_stride * 3;
+	vbView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
 
 }
 

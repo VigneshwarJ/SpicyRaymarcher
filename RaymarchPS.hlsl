@@ -80,7 +80,7 @@ float4 main(VertexToPixel input) : SV_Target{
     float3 rayDirection = getRayDirection(screenPosition);
     float t = intersectSphere(cameraPosition, rayDirection, spherePosition, sphereRadius);
     if (t < 0.0) {
-        return float4(screenPosition,0.0, 1.0);
+        return float4(bgColor, 1.0);
     }
  else {
   float3 position = cameraPosition + t * rayDirection;

@@ -151,6 +151,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshBasedEntity.cpp" />
     <ClCompile Include="RaytracingHelper.cpp" />
     <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="SDFRenderer.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshBasedEntity.h" />
     <ClInclude Include="RaytracingHelper.h" />
     <ClInclude Include="RenderCore.h" />
     <ClInclude Include="SDFRenderer.h" />

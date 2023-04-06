@@ -69,17 +69,9 @@ Game::~Game()
 void Game::Init()
 {
 
-
-
-
-
 	// Seed random
 	srand((unsigned int)time(0));
 
-	ibView = {};
-	vbView = {};
-
-	CreateBasicGeometry();
 
 	camera = std::make_shared<Camera>(
 		0.0f, 0.0f, -12.0f,	// Position
@@ -88,15 +80,11 @@ void Game::Init()
 		this->width / (float)this->height); // Aspect ratio
 
 	InitSDFRenderer();
-	CreateMaterials();
-
-	CreateEntities();
 
 	// I put this in the sdfrenderer init method for now
 	//// Ensure the command list is closed going into Draw for the first time
 	//commandList->Close();
 
-	raytracing = false;
 }
 
 void Game::InitSDFRenderer()
@@ -104,126 +92,6 @@ void Game::InitSDFRenderer()
 	sdfRenderer = renderer; //this is lazy and bad im sorry
 	sdfRenderer->Init(vsync, camera);
 }
-
-
-// --------------------------------------------------------
-// Creates the geometry we're going to draw - a single triangle for now
-// --------------------------------------------------------
-void Game::CreateBasicGeometry()
-{
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-
-}
-
-void Game::CreateEntities()
-{
-	CreateMeshes();
-	entities.push_back(std::make_shared<GameEntity>(meshes[0], materials[2], Transform()));
-	//entities.push_back(std::make_shared<GameEntity>(meshes[1], materials[1], Transform()));
-	//entities.push_back(std::make_shared<GameEntity>(meshes[2], materials[0], Transform()));
-}
-
-void Game::CreateMeshes()
-{
-	meshes.push_back(std::make_shared<Mesh>(Utils::GetFullPathTo("../../Assets/Models/sphere.obj").c_str(), device));
-	meshes.push_back(std::make_shared<Mesh>(Utils::GetFullPathTo("../../Assets/Models/cube.obj").c_str(), device));
-	meshes.push_back(std::make_shared<Mesh>(Utils::GetFullPathTo("../../Assets/Models/helix.obj").c_str(), device));
-}
-
-
-void Game::LoadTextures()
-{
-
-}
-
-void Game::CreateMaterials()
-{
-	std::wstring assets = Utils::GetFullPathTo_Wide(L"../../Assets");
-	std::wstring textures = assets + L"\\Textures";
-	D3D12_CPU_DESCRIPTOR_HANDLE albedo = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_albedo.png").c_str());
-	D3D12_CPU_DESCRIPTOR_HANDLE metal = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_metal.png").c_str());
-	D3D12_CPU_DESCRIPTOR_HANDLE normals = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_normals.png").c_str());
-	D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\bronze_roughness.png").c_str());
-
-	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
-
-	std::shared_ptr<Material> material = std::make_shared<Material>(
-		sdfRenderer->GetPipeState(),
-		DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-		);
-
-	material->AddTexture(albedo, 0);
-	material->AddTexture(metal, 1);
-	material->AddTexture(normals, 2);
-	material->AddTexture(roughness, 3);
-
-	material->FinalizeMaterial();
-
-	materials.push_back(material);
-
-	albedo = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
-	metal = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
-	normals = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
-	roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
-
-	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
-
-	material = std::make_shared<Material>(
-		sdfRenderer->GetPipeState(),
-		DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-		);
-
-	material->AddTexture(albedo, 0);
-	material->AddTexture(metal, 1);
-	material->AddTexture(normals, 2);
-	material->AddTexture(roughness, 3);
-
-	material->FinalizeMaterial();
-
-	materials.push_back(material);
-
-	albedo = DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_albedo.tif").c_str());
-	metal = DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_metalic.tif").c_str());
-	normals = DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_normal.tif").c_str());
-	roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\Planet1\\planet1_roughness.tif").c_str());
-
-	//D3D12_CPU_DESCRIPTOR_HANDLE albedo =    DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_albedo.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE metal =     DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_metal.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE normals =   DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_normals.png").c_str());
-	//D3D12_CPU_DESCRIPTOR_HANDLE roughness = DX12Helper::GetInstance().LoadTexture((textures + L"\\cobblestone_roughness.png").c_str());
-
-	material = std::make_shared<Material>(
-		sdfRenderer->GetPipeState(),
-		DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-		);
-
-	material->AddTexture(albedo, 0);
-	material->AddTexture(metal, 1);
-	material->AddTexture(normals, 2);
-	material->AddTexture(roughness, 3);
-
-	material->FinalizeMaterial();
-
-	materials.push_back(material);
-
-}
-
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
@@ -248,9 +116,6 @@ void Game::Update(float deltaTime, float totalTime)
 		entities[i]->GetTransform()->Rotate(0.0f, 0.3f * deltaTime, 0.0f);
 	}
 
-	if (Input::GetInstance().KeyDown('R')) {
-		raytracing != raytracing;
-	}
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
@@ -261,7 +126,7 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-
+	// Should create a new entity for sdf structures.
 	sdfRenderer->Render(entities, color, sphereSize, lightPos, spherePos);
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
