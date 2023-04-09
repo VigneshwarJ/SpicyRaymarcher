@@ -12,6 +12,7 @@
 #include "BufferStructs.h"
 #include "Lights.h"
 #include "SDFRenderer.h"
+#include "SDFEntity.h"
 
 #include "Utils.h"
 
@@ -28,6 +29,8 @@ public:
 	// will be called automatically
 	void Init();
 	void OnResize();
+	void UpdateImGui();
+	void UpdateGUI();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 

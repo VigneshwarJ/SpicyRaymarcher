@@ -3,23 +3,25 @@
 #include <vector>
 #include "BufferStructs.h"
 
-struct SphereSettings
+struct UISettings
 {
-	SphereSettings(SDFSphere* sphere)
-		:spheres(sphere),
-		sphereSize(5.0f)
+	UISettings()
+		//:spheres(sphere),
+		:sphereSize(5.0f)
 	{}
 	float color[4] = { 1.0f,1.0f,1.0f,1.0f };;
 	float sphereSize;
 	float spherePos[3] = { 0.0, 0.0 , 7.0 };
-	SDFSphere* spheres = nullptr;
+	//SDFSphere* spheres = nullptr;
 };
 
+//multiple buttons for particular shapes
+//enum for shape types
 
 class SDFEntity
 {
 public:
-	SDFEntity():sphereSetting(psData.spheres){
+	SDFEntity():uiSettings(){
 		
 	}
 
@@ -46,7 +48,7 @@ public:
 private:
 	int sphereCount = 0;
 	float lightPos[3] = { 0.0, -10.0 , 0.0 };
-	SphereSettings sphereSetting;
+	UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;
 
 	RaymarchPSExternalData psData = {};

@@ -20,9 +20,9 @@ void SDFEntity::AddSphere()
         return;
     }
 
-    sphereSetting.spheres[sphereCount].sphereRadius = sphereSetting.sphereSize;
-    sphereSetting.spheres[sphereCount].sphereColor = DirectX::XMFLOAT4(sphereSetting.color);
-    sphereSetting.spheres[sphereCount].spherePosition = DirectX::XMFLOAT3(sphereSetting.spherePos);
+    psData.spheres[sphereCount].sphereRadius = uiSettings.sphereSize;
+    psData.spheres[sphereCount].sphereColor = DirectX::XMFLOAT4(uiSettings.color);
+    psData.spheres[sphereCount].spherePosition = DirectX::XMFLOAT3(uiSettings.spherePos);
     sphereCount++;
 }
 
@@ -34,18 +34,18 @@ void SDFEntity::ChangeSphereSettings(int no)
         return;
     }
 
-    sphereSetting.spheres[no].sphereRadius = sphereSetting.sphereSize;
-    sphereSetting.spheres[no].sphereColor = DirectX::XMFLOAT4(sphereSetting.color);
-    sphereSetting.spheres[no].spherePosition = DirectX::XMFLOAT3(sphereSetting.spherePos);
+    psData.spheres[no].sphereRadius = uiSettings.sphereSize;
+    psData.spheres[no].sphereColor = DirectX::XMFLOAT4(uiSettings.color);
+    psData.spheres[no].spherePosition = DirectX::XMFLOAT3(uiSettings.spherePos);
     
 }
 
 void SDFEntity::TweakSphereSettings()
 {
-    ImGui::SliderFloat("Sphere size", &sphereSetting.sphereSize, 0, 100);
+    ImGui::SliderFloat("Sphere size", &uiSettings.sphereSize, 0, 100);
 
-    ImGui::SliderFloat3("sphere position", sphereSetting.spherePos, -100.0, 100.0);
-    ImGui::ColorEdit3("color", sphereSetting.color);
+    ImGui::SliderFloat3("position", uiSettings.spherePos, -100.0, 100.0);
+    ImGui::ColorEdit3("color", uiSettings.color);
     ImGui::Checkbox("continuous update", &continuos_update);
     if (ImGui::Button("CreateSphere"))
     {
@@ -62,14 +62,14 @@ void SDFEntity::TweakSphereSettings()
             {
                 item_current_idx = n;
                 continuos_update = false;
-                sphereSetting.sphereSize = sphereSetting.spheres[item_current_idx].sphereRadius;
-                sphereSetting.color[0] = sphereSetting.spheres[item_current_idx].sphereColor.x;
-                sphereSetting.color[1] = sphereSetting.spheres[item_current_idx].sphereColor.y;
-                sphereSetting.color[2] = sphereSetting.spheres[item_current_idx].sphereColor.z;
-                sphereSetting.color[3] = sphereSetting.spheres[item_current_idx].sphereColor.w ;
-                sphereSetting.spherePos[0] = sphereSetting.spheres[item_current_idx].spherePosition.x;
-                sphereSetting.spherePos[1] = sphereSetting.spheres[item_current_idx].spherePosition.y;
-                sphereSetting.spherePos[2] = sphereSetting.spheres[item_current_idx].spherePosition.z;
+                uiSettings.sphereSize = psData.spheres[item_current_idx].sphereRadius;
+                uiSettings.color[0] = psData.spheres[item_current_idx].sphereColor.x;
+                uiSettings.color[1] = psData.spheres[item_current_idx].sphereColor.y;
+                uiSettings.color[2] = psData.spheres[item_current_idx].sphereColor.z;
+                uiSettings.color[3] = psData.spheres[item_current_idx].sphereColor.w ;
+                uiSettings.spherePos[0] = psData.spheres[item_current_idx].spherePosition.x;
+                uiSettings.spherePos[1] = psData.spheres[item_current_idx].spherePosition.y;
+                uiSettings.spherePos[2] = psData.spheres[item_current_idx].spherePosition.z;
             }
 
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)

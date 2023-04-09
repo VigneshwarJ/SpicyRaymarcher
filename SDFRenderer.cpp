@@ -36,9 +36,6 @@ void SDFRenderer::Render()
 {
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
 
 	//reset allocator for THIS buffer and set up the command list to use THIS allocator for THIS buffer
 	commandAllocators[currentSwapBuffer]->Reset();
@@ -80,21 +77,21 @@ void SDFRenderer::Render()
 			0, 0); // No scissor rects
 	}
 
-	{
-		//io.WantCaptureMouse = true;
-		static float f = 0.0f;
+	//{
+	//	//io.WantCaptureMouse = true;
+	//	static float f = 0.0f;
 
-		ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
-		SDFEntity::GetSDFEntity()->DisplaySDFSettings();
+	//	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
+	//	SDFEntity::GetSDFEntity()->DisplaySDFSettings();
 
-		
+	//	
 
-	
+	//
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
-		//ImGui::End();
-	}
+	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	//	ImGui::End();
+	//	//ImGui::End();
+	//}
 
 	// Rendering here!
 	{

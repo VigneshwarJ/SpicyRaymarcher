@@ -104,6 +104,30 @@ void Game::OnResize()
 	sdfRenderer->OnResize(width, height);
 }
 
+void Game::UpdateGUI()
+{
+
+	//io.WantCaptureMouse = true;
+	static float f = 0.0f;
+
+
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
+	SDFEntity::GetSDFEntity()->DisplaySDFSettings();
+
+
+
+
+
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
+
+
+}
+
 // --------------------------------------------------------
 // Update your game here - user input, move objects, AI, etc.
 // --------------------------------------------------------
@@ -111,10 +135,13 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	camera->Update(deltaTime);
 
-	for (int i = 0; i < entities.size(); i++)
-	{
-		entities[i]->GetTransform()->Rotate(0.0f, 0.3f * deltaTime, 0.0f);
-	}
+	//for (int i = 0; i < entities.size(); i++)
+	//{
+	//	entities[i]->GetTransform()->Rotate(0.0f, 0.3f * deltaTime, 0.0f);
+	//}
+
+
+	UpdateGUI();
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
