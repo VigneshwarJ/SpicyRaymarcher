@@ -12,10 +12,14 @@
 #include "BufferStructs.h"
 #include "Lights.h"
 #include "SDFRenderer.h"
+#include "SDFEntity.h"
+
+#include "Utils.h"
 
 class Game 
 	: public DXCore
 {
+	//friend class SDFRenderer;
 
 public:
 	Game(HINSTANCE hInstance);
@@ -25,6 +29,8 @@ public:
 	// will be called automatically
 	void Init();
 	void OnResize();
+	void UpdateImGui();
+	void UpdateGUI();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
@@ -36,23 +42,10 @@ private:
 	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
 	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
 	void InitSDFRenderer();
-	void RenderSDF();
 
 	// Initialization helper methods - feel free to customize, combine, etc.
-	void CreateRootSigAndPipelineState();
-	void CreateBasicGeometry();
-	void CreateEntities();
-	void CreateMeshes();
-	void PlaceEntities();
-	void LoadTextures();
-	void CreateMaterials();
+	//void CreateRootSigAndPipelineState();
 	
-	//for raytracing
-	void CreateAccelerationStructures();
-
-	void RandomLighting();
-	Light RandomPointLight(float minRange, float maxRange, float minIntensity, float maxIntensity);
-
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -60,8 +53,8 @@ private:
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
 	// Buffers to hold actual geometry data
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
+	//Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+	//Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW vbView;
@@ -81,10 +74,9 @@ private:
 	float sphereSize; 
 	float lightPos[3]; 
 	float spherePos[3]; 
-	bool raytracing;
 
 	//SDF variables
-	std::shared_ptr<SDFRenderer> sdfRenderer;
+	std::shared_ptr<RenderCore> sdfRenderer;
 	
 };
 

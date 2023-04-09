@@ -3,21 +3,20 @@
 #include "Mesh.h"
 #include "Transform.h"
 #include "Material.h"
+/*
+	Game entity can be anything
+    Mesh / SDF based entities
 
+*/
 class GameEntity
 {
 public:
-	GameEntity(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat, Transform transform);
+	GameEntity(std::shared_ptr<Material> mat, Transform transform);
 
-	std::shared_ptr<Mesh> GetMesh();
 	Transform* GetTransform();
 	std::shared_ptr<Material> GetMaterial();
-
-
 private:
-	std::shared_ptr<Mesh> mesh;
 	Transform transform;
 	std::shared_ptr<Material> material;
-
 };
 
