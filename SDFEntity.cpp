@@ -30,11 +30,26 @@ void  SDFEntity::AddSphere()
     psData.primitives[primitiveCount].Radius = uiSettings.sphereSize;
     psData.primitives[primitiveCount].Color = DirectX::XMFLOAT4(uiSettings.color);
     psData.primitives[primitiveCount].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
+    psData.primitives[primitiveCount].Type = SDF_TYPE_SPHERE;
+
+
+
     primitiveCount++;
 }
 
 void SDFEntity::AddBox()
 {
+    if (!CanAddPrimitive())
+        return;
+
+    psData.primitives[primitiveCount].Color = DirectX::XMFLOAT4(uiSettings.color);
+    psData.primitives[primitiveCount].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
+    psData.primitives[primitiveCount].Dimensions = DirectX::XMFLOAT3(uiSettings.spherePos);
+    psData.primitives[primitiveCount].Type = SDF_TYPE_BOX;
+
+
+
+    primitiveCount++;
 }
 
 void SDFEntity::ChangeSphereSettings(int no)

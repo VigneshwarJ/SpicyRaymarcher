@@ -19,7 +19,7 @@
 #define SDF_TYPE_SPHERE	0
 #define SDF_TYPE_BOX	1
 
-struct SDFSPrimitive
+struct SDFPrimitive
 {
 
 	int Type;
@@ -42,7 +42,7 @@ cbuffer ExternalData : register(b0)
 	float3 bgColor; // bg color not working
 	float3 lightPosition;
 	int primitiveCount;
-	SDFSPrimitive primitives[128];
+	SDFPrimitive primitives[128];
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -146,7 +146,24 @@ float4 main(VertexToPixel input) : SV_Target{
 		//find the distance of the scene at this pixel
 		for (int i = 0; i < primitiveCount; i++)
 		{
-			float thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+			float thisPrimDistance = 0.0f;
+
+			switch (primitives[i].Type)
+			{
+			case SDF_TYPE_SPHERE:
+				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+				break;
+			case SDF_TYPE_BOX:
+				thisPrimDistance = box(marcherPosition - primitives[i].Position, primitives[i].Dimensions);
+				break;
+			default:
+				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+				break;
+			}
+
+			////thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+
+
 			finalDistance = basicUnion(finalDistance, thisPrimDistance);
 		}
 
