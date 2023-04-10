@@ -135,25 +135,28 @@ float4 main(VertexToPixel input) : SV_Target{
 
 	//The cuttoff point at which we say "hit something!"
 	float rmHitDistance = 1.0;
-	int maxSteps = 5000;
+	int maxSteps = 500;
 	//float distances[primitivesCount];
-	float finalDistance;
+	float finalDistance = 10000.0f;
 	float3 marcherPosition = cameraPosition; //start marching at the camera position
 
 
 	for (int i = 0; i < maxSteps; i++)
 	{
 		//find the distance of the scene at this pixel
-		for (int i = 1; i < primitiveCount; i++)
+		for (int i = 0; i < primitiveCount; i++)
 		{
-			float thisPrimDistance = sphere(marcherPosition, primitives[i].Radius);
+			float thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
 			finalDistance = basicUnion(finalDistance, thisPrimDistance);
 		}
+
+		//march the ray forward
+		marcherPosition += rayDirection * finalDistance;
 
 		//check current distance against the stop distance
 		if (finalDistance < rmHitDistance)
 		{
-			float3 position = cameraPosition + finalDistance * rayDirection;
+			float3 position = marcherPosition;//cameraPosition + finalDistance * rayDirection;
 			float3 normal = calculateNormal(position, primitives[i].Position);
 			float diffuse = calculateLighting(position, normal);
 			float3 ambient = 0.1;
@@ -161,9 +164,6 @@ float4 main(VertexToPixel input) : SV_Target{
 			finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
 			break;
 		}
-
-		//march the ray forward
-		marcherPosition += rayDirection * finalDistance;
 	}
 
 	//for (int i = 0; i < primitiveCount; i++)
