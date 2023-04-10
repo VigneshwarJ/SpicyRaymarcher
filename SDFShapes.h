@@ -4,14 +4,33 @@
 
 // Be mindful of padding
 
-struct SDFSphere 
-{
-	//....
-    // TODO: Figure out whether this works
-	float  sphereRadius;
-	DirectX::XMFLOAT3 spherePosition;  // 16 bytes
+// Primitive types
+// As with light types in Lights.h, must match definitions in shader
+#define SDF_TYPE_SPHERE	0
+#define SDF_TYPE_BOX	1
 
-	DirectX::XMFLOAT4 sphereColor;
+//struct SDFSphere 
+//{
+//	//....
+//    // TODO: Figure out whether this works
+//	float  sphereRadius;
+//	DirectX::XMFLOAT3 spherePosition;  // 16 bytes
+//
+//	DirectX::XMFLOAT4 sphereColor;
+//	//....
+//
+//
+//};
+
+struct SDFPrimitive //todo: low priority right now, but it may be good to have some sort of error checking or assertion of some kind, IE warn user when they try to assign a radius to type box
+{
+	int Type;
+	DirectX::XMFLOAT3 Position;  // 16 bytes
+
+	float Radius; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
+	DirectX::XMFLOAT3 Dimensions;  // 32 bytes
+
+	DirectX::XMFLOAT4 Color;
 	//....
 
 

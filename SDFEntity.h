@@ -25,11 +25,15 @@ public:
 		
 	}
 
+	bool CanAddPrimitive();
+
 	void AddSphere();
+	void AddBox();
 	void ChangeSphereSettings(int number);
 	void TweakSphereSettings();
 
 	void DisplaySDFSettings();
+
 	static SDFEntity* GetSDFEntity() {
 		if (!s_Entity)
 		{
@@ -46,7 +50,7 @@ public:
 
 
 private:
-	int sphereCount = 0;
+	int primitiveCount = 0;
 	float lightPos[3] = { 0.0, -10.0 , 0.0 };
 	UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;

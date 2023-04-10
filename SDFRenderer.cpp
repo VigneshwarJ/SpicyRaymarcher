@@ -125,6 +125,8 @@ void SDFRenderer::Render()
 
 			/*
 			TODO: Below should be moved inside Camera class
+
+			why?
 			*/
 			
 			auto entity = SDFEntity::GetSDFEntity();

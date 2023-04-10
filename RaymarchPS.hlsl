@@ -3,15 +3,32 @@
 
 // How many lights could we handle?
 //#define MAX_LIGHTS 128
-struct SDFSphere
-{
-	//....
-	// TODO: Figure out whether this works
-	float  sphereRadius;
-	float3 spherePosition;  // 16 bytes
+//struct SDFSphere
+//{
+//	//....
+//	// TODO: Figure out whether this works
+//	float  sphereRadius;
+//	float3 spherePosition;  // 16 bytes
+//
+//	float4 sphereColor;
+//	//....
+//
+//
+//};
 
-	float4 sphereColor;
-	//....
+#define SDF_TYPE_SPHERE	0
+#define SDF_TYPE_BOX	1
+
+struct SDFSPrimitive
+{
+
+	int Type;
+	float3 Position;  // 16 bytes
+
+	float Radius; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
+	float3 Dimensions;  // 32 bytes
+
+	float4 Color;
 
 
 };
@@ -24,8 +41,8 @@ cbuffer ExternalData : register(b0)
 	float3 cameraUp;
 	float3 bgColor; // bg color not working
 	float3 lightPosition;
-	int sphereCount;
-	SDFSphere spheres[128];
+	int primitiveCount;
+	SDFSPrimitive primitives[128];
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -51,11 +68,35 @@ struct VertexToPixel
 //
 //
 //
+
+float sphere(float3 position, float radius)
+{
+	return length(position) - radius;
+}
+
+float box(float3 position, float3 bDimensions)
+{
+	float3 q = abs(position) - bDimensions;
+	return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+}
+
+//by finding the closest distance between the two points, we can join two primitives together
+float basicUnion(float distance1, float distance2)
+{
+	return min(distance1, distance2);
+}
+
+float findDistance()
+{
+
+}
+
 float3 getRayDirection(float2 screenPosition) {
 	float3 direction = screenPosition.x * cameraRight + screenPosition.y * cameraUp + 1.0f * cameraForward;
 	return normalize(direction);
 }
 
+//wat
 float intersectSphere(float3 rayOrigin, float3 rayDirection, float3 spherePosition, float sphereRadius) {
 	float3 L = spherePosition - rayOrigin;
 	float tca = dot(L, rayDirection);
@@ -91,20 +132,56 @@ float4 main(VertexToPixel input) : SV_Target{
 	float3 rayDirection = getRayDirection(screenPosition);
 
 	float4 finalcolor = float4(bgColor, 1.0);
-	for (int i = 0; i < sphereCount; i++)
+
+	//The cuttoff point at which we say "hit something!"
+	float rmHitDistance = 1.0;
+	int maxSteps = 5000;
+	//float distances[primitivesCount];
+	float finalDistance;
+	float3 marcherPosition = cameraPosition; //start marching at the camera position
+
+
+	for (int i = 0; i < maxSteps; i++)
 	{
-		float t = intersectSphere(cameraPosition, rayDirection, spheres[i].spherePosition, spheres[i].sphereRadius);
-		if (t < 0.0) {
-			continue;
+		//find the distance of the scene at this pixel
+		for (int i = 1; i < primitiveCount; i++)
+		{
+			float thisPrimDistance = sphere(marcherPosition, primitives[i].Radius);
+			finalDistance = basicUnion(finalDistance, thisPrimDistance);
 		}
-		else {
-			float3 position = cameraPosition + t * rayDirection;
-			float3 normal = calculateNormal(position, spheres[i].spherePosition);
+
+		//check current distance against the stop distance
+		if (finalDistance < rmHitDistance)
+		{
+			float3 position = cameraPosition + finalDistance * rayDirection;
+			float3 normal = calculateNormal(position, primitives[i].Position);
 			float diffuse = calculateLighting(position, normal);
 			float3 ambient = 0.1;
-			float3 diffuseColor = spheres[i].sphereColor.xyz;
-			finalcolor = float4(ambient + diffuseColor * diffuse, spheres[i].sphereColor.w);
+			float3 diffuseColor = primitives[i].Color.xyz;
+			finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
+			break;
 		}
+
+		//march the ray forward
+		marcherPosition += rayDirection * finalDistance;
 	}
+
+	//for (int i = 0; i < primitiveCount; i++)
+	//{
+	//	float t = intersectSphere(cameraPosition, rayDirection, primitives[i].Position, primitives[i].Radius);
+	//	//float t = intersectSphere(cameraPosition, rayDirection, primitives[i].Position, primitives[i].Radius);
+
+	//	if (t < 0.0) {
+	//		continue;
+	//	}
+	//	else {
+	//		float3 position = cameraPosition + t * rayDirection;
+	//		float3 normal = calculateNormal(position, primitives[i].Position);
+	//		float diffuse = calculateLighting(position, normal);
+	//		float3 ambient = 0.1;
+	//		float3 diffuseColor = primitives[i].Color.xyz;
+	//		finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
+	//	}
+	//}
 	return finalcolor;
 }

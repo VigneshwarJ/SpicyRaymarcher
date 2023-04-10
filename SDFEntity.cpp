@@ -12,18 +12,29 @@ static bool create_cone = false;
 
 static int item_current_idx = 0;
 static bool continuos_update = false;
-void SDFEntity::AddSphere()
+bool SDFEntity::CanAddPrimitive()
 {
-    if (sphereCount >= MAX_SDF_COUNT)
+    if (primitiveCount >= MAX_SDF_COUNT)
     {
-        std::cerr << "Max sdf spheres count reached\n";
-        return;
+        std::cerr << "Max sdf primitives count reached\n";
+        return false;
     }
+    return true;
+}
 
-    psData.spheres[sphereCount].sphereRadius = uiSettings.sphereSize;
-    psData.spheres[sphereCount].sphereColor = DirectX::XMFLOAT4(uiSettings.color);
-    psData.spheres[sphereCount].spherePosition = DirectX::XMFLOAT3(uiSettings.spherePos);
-    sphereCount++;
+void  SDFEntity::AddSphere()
+{
+    if (!CanAddPrimitive())
+        return;
+
+    psData.primitives[primitiveCount].Radius = uiSettings.sphereSize;
+    psData.primitives[primitiveCount].Color = DirectX::XMFLOAT4(uiSettings.color);
+    psData.primitives[primitiveCount].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
+    primitiveCount++;
+}
+
+void SDFEntity::AddBox()
+{
 }
 
 void SDFEntity::ChangeSphereSettings(int no)
@@ -34,9 +45,9 @@ void SDFEntity::ChangeSphereSettings(int no)
         return;
     }
 
-    psData.spheres[no].sphereRadius = uiSettings.sphereSize;
-    psData.spheres[no].sphereColor = DirectX::XMFLOAT4(uiSettings.color);
-    psData.spheres[no].spherePosition = DirectX::XMFLOAT3(uiSettings.spherePos);
+    psData.primitives[no].Radius = uiSettings.sphereSize;
+    psData.primitives[no].Color = DirectX::XMFLOAT4(uiSettings.color);
+    psData.primitives[no].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
     
 }
 
@@ -54,7 +65,7 @@ void SDFEntity::TweakSphereSettings()
 
     if (ImGui::BeginListBox("Spheres"))
     {
-        for (int n = 0; n < GetSDFEntity()->sphereCount; n++)
+        for (int n = 0; n < GetSDFEntity()->primitiveCount; n++)
         {
             const bool is_selected = (item_current_idx == n);
             char i[2] = { n + '0','\0' };
@@ -62,14 +73,14 @@ void SDFEntity::TweakSphereSettings()
             {
                 item_current_idx = n;
                 continuos_update = false;
-                uiSettings.sphereSize = psData.spheres[item_current_idx].sphereRadius;
-                uiSettings.color[0] = psData.spheres[item_current_idx].sphereColor.x;
-                uiSettings.color[1] = psData.spheres[item_current_idx].sphereColor.y;
-                uiSettings.color[2] = psData.spheres[item_current_idx].sphereColor.z;
-                uiSettings.color[3] = psData.spheres[item_current_idx].sphereColor.w ;
-                uiSettings.spherePos[0] = psData.spheres[item_current_idx].spherePosition.x;
-                uiSettings.spherePos[1] = psData.spheres[item_current_idx].spherePosition.y;
-                uiSettings.spherePos[2] = psData.spheres[item_current_idx].spherePosition.z;
+                uiSettings.sphereSize = psData.primitives[item_current_idx].Radius;
+                uiSettings.color[0] = psData.primitives[item_current_idx].Color.x;
+                uiSettings.color[1] = psData.primitives[item_current_idx].Color.y;
+                uiSettings.color[2] = psData.primitives[item_current_idx].Color.z;
+                uiSettings.color[3] = psData.primitives[item_current_idx].Color.w ;
+                uiSettings.spherePos[0] = psData.primitives[item_current_idx].Position.x;
+                uiSettings.spherePos[1] = psData.primitives[item_current_idx].Position.y;
+                uiSettings.spherePos[2] = psData.primitives[item_current_idx].Position.z;
             }
 
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -78,7 +89,7 @@ void SDFEntity::TweakSphereSettings()
         }
         ImGui::EndListBox();
     }
-    if (GetSDFEntity()->sphereCount > 0)
+    if (GetSDFEntity()->primitiveCount > 0)
     {
         if (continuos_update)
         {
@@ -130,6 +141,6 @@ void SDFEntity::DisplaySDFSettings()
 RaymarchPSExternalData* SDFEntity::GetRayMarchPSData()
 {
     psData.lightPosition = DirectX::XMFLOAT3A(lightPos);
-    psData.sphereCount = sphereCount;
+    psData.primitiveCount = primitiveCount;
     return &psData;
 }
