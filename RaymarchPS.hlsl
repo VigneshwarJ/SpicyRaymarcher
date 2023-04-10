@@ -143,6 +143,7 @@ float4 main(VertexToPixel input) : SV_Target{
 
 	for (int i = 0; i < maxSteps; i++)
 	{
+		float3 normal;
 		//find the distance of the scene at this pixel
 		for (int i = 0; i < primitiveCount; i++)
 		{
@@ -165,6 +166,11 @@ float4 main(VertexToPixel input) : SV_Target{
 
 
 			finalDistance = basicUnion(finalDistance, thisPrimDistance);
+			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
+			if (finalDistance = thisPrimDistance)
+			{
+				normal = calculateNormal(marcherPosition, primitives[i].Position);
+			}
 		}
 
 		//march the ray forward
@@ -174,11 +180,12 @@ float4 main(VertexToPixel input) : SV_Target{
 		if (finalDistance < rmHitDistance)
 		{
 			float3 position = marcherPosition;//cameraPosition + finalDistance * rayDirection;
-			float3 normal = calculateNormal(position, primitives[i].Position);
+			//float3 normal = calculateNormal(position, primitives[i].Position);
 			float diffuse = calculateLighting(position, normal);
 			float3 ambient = 0.1;
 			float3 diffuseColor = primitives[i].Color.xyz;
 			finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
+			finalcolor = normal.xyzz;
 			break;
 		}
 	}
