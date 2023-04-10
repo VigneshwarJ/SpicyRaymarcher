@@ -144,6 +144,7 @@ float4 main(VertexToPixel input) : SV_Target{
 	for (int i = 0; i < maxSteps; i++)
 	{
 		float3 normal;
+		float3 diffuseColor;
 		//find the distance of the scene at this pixel
 		for (int i = 0; i < primitiveCount; i++)
 		{
@@ -170,6 +171,7 @@ float4 main(VertexToPixel input) : SV_Target{
 			if (finalDistance = thisPrimDistance)
 			{
 				normal = calculateNormal(marcherPosition, primitives[i].Position);
+				diffuseColor = primitives[i].Color.xyz;
 			}
 		}
 
@@ -183,9 +185,9 @@ float4 main(VertexToPixel input) : SV_Target{
 			//float3 normal = calculateNormal(position, primitives[i].Position);
 			float diffuse = calculateLighting(position, normal);
 			float3 ambient = 0.1;
-			float3 diffuseColor = primitives[i].Color.xyz;
+			//float3 diffuseColor = primitives[i].Color.xyz;
 			finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
-			finalcolor = normal.xyzz;
+			//finalcolor = float4(normal.xyz, 0.0f);
 			break;
 		}
 	}
