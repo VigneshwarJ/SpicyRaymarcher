@@ -74,6 +74,7 @@ float sphere(float3 position, float radius)
 	return length(position) - radius;
 }
 
+//this formula worked as is in unreal, its *extremely* unlikely that the math here is wrong
 float box(float3 position, float3 bDimensions)
 {
 	float3 q = abs(position) - bDimensions;
@@ -170,7 +171,8 @@ float4 main(VertexToPixel input) : SV_Target{
 			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
 			if (finalDistance = thisPrimDistance)
 			{
-				normal = calculateNormal(marcherPosition, primitives[i].Position);
+				//normal = calculateNormal(marcherPosition, primitives[i].Position);
+				normal = float3(0.0f, 0.0f, 0.0f);
 				diffuseColor = primitives[i].Color.xyz;
 			}
 		}

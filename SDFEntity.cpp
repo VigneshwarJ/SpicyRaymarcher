@@ -33,8 +33,8 @@ void  SDFEntity::AddSphere()
     psData.primitives[primitiveCount].Type = SDF_TYPE_SPHERE;
 
 
-
     primitiveCount++;
+    //primitivesNames->push_back("hello");// std::to_string(primitiveCount));
 }
 
 void SDFEntity::AddBox()
@@ -44,7 +44,7 @@ void SDFEntity::AddBox()
 
     psData.primitives[primitiveCount].Color = DirectX::XMFLOAT4(uiSettings.color);
     psData.primitives[primitiveCount].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
-    psData.primitives[primitiveCount].Dimensions = DirectX::XMFLOAT3(uiSettings.spherePos);
+    psData.primitives[primitiveCount].Dimensions = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
     psData.primitives[primitiveCount].Type = SDF_TYPE_BOX;
 
 
@@ -73,22 +73,25 @@ void SDFEntity::ShowSphereSettings()
     //if (ImGui::BeginTable("split", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable))
     if (ImGui::TreeNode("Primitives"))
     {
-        if (ImGui::BeginListBox("Spheres"))
-        {
-            for (int i = 0; i < primitiveCount; i++)
-            {
-				const bool is_selected = (item_current_idx == i);
-                const char* name = primitivesNames->at(i).c_str(); //idk why it didnt work with [i] but why would strings in c++ ever miss out on a chance to make me miserable and confused
-                if (ImGui::Selectable(name, is_selected))
-                    item_current_idx = i;
+        ImGui::Text("uuuuuh list box here soon");
+    //    if (ImGui::BeginListBox("Spheres"))
+    //    {
+    //        for (int i = 0; i < primitiveCount; i++)
+    //        {
+				//const bool is_selected = (item_current_idx == i);
+    //            const char* name = primitivesNames->at(i).c_str(); //idk why it didnt work with [i] but why would strings in c++ ever miss out on a chance to make me miserable and confused
+    //            if (ImGui::Selectable(name, is_selected))
+    //                item_current_idx = i;
 
-                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndListBox();
+    //            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+    //            if (is_selected)
+    //                ImGui::SetItemDefaultFocus();
+    //        }
+    //        ImGui::EndListBox();
 
-        }
+    //    }
+    // 
+ //------------------------------------------------------------------------------------------
         //ImGui::ListBox("prims", &item_current_idx, psData.primitives, primitiveCount, 4);
 		//if (ImGui::BeginListBox("Spheres"))
 		//{
@@ -135,6 +138,10 @@ void SDFEntity::ShowSphereSettings()
     if (ImGui::Button("CreateSphere"))
     {
         AddSphere();
+    }
+    if (ImGui::Button("CreateBox"))
+    {
+        AddBox();
     }
 
     if (ImGui::BeginListBox("Spheres"))

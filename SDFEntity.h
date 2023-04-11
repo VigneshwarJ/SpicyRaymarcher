@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include "BufferStructs.h"
+#include <string>
 
 struct UISettings
 {
@@ -59,8 +60,8 @@ private:
 	//I dont want to have the primitives hold the names themselves. it doesnt 
 	// work well with list boxes, and its unnecessary to send to the shader
 	//std::unique_ptr<std::map<std::string, SDFPrimitive>> primitives;
-	std::unique_ptr<std::vector<SDFPrimitive>> primitives;
-	std::unique_ptr<std::vector<std::string>> primitivesNames;
+	//std::unique_ptr<std::vector<SDFPrimitive>> primitives;
+	std::unique_ptr<std::vector<std::string>> primitivesNames = std::make_unique<std::vector<std::string>>();
 
 	RaymarchPSExternalData psData = {};
 };
