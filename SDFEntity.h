@@ -30,7 +30,7 @@ public:
 	void AddSphere();
 	void AddBox();
 	void ChangeSphereSettings(int number);
-	void TweakSphereSettings();
+	void ShowSphereSettings();
 
 	void DisplaySDFSettings();
 

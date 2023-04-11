@@ -85,7 +85,7 @@ DirectX::XMVECTOR Camera::GetDirection()  noexcept
 DirectX::XMVECTOR Camera::GetForward() const noexcept
 {
 	return XMVector3Cross(GetRight(),
-		getUp());
+		GetUp());
 }
 DirectX::XMVECTOR Camera::GetRight() const noexcept
 {
@@ -94,7 +94,7 @@ DirectX::XMVECTOR Camera::GetRight() const noexcept
 		direction);
 }
 
-DirectX::XMVECTOR Camera::getUp() const noexcept
+DirectX::XMVECTOR Camera::GetUp() const noexcept
 {
 	return XMVector3Cross(direction,
 		GetRight());

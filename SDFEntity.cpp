@@ -66,8 +66,51 @@ void SDFEntity::ChangeSphereSettings(int no)
     
 }
 
-void SDFEntity::TweakSphereSettings()
+void SDFEntity::ShowSphereSettings()
 {
+	//ImGui::Text("hello");
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+    //if (ImGui::BeginTable("split", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable))
+    if (ImGui::TreeNode("Primitives"))
+    {
+        ImGui::ListBox("prims", &item_current_idx, psData.primitives, primitiveCount, 4);
+		//if (ImGui::BeginListBox("Spheres"))
+		//{
+		//	// Iterate placeholder objects (all the same data)
+		//	for (int i = 0; i < primitiveCount; i++)
+		//	{
+  //              const bool is_selected = (item_current_idx == i);
+  //              //char i[2] = { n + '0','\0' };
+  //              if (ImGui::Selectable(i, is_selected))
+  //              {
+  //                  item_current_idx = n;
+  //                  continuos_update = false;
+  //                  uiSettings.sphereSize = psData.primitives[item_current_idx].Radius;
+  //                  uiSettings.color[0] = psData.primitives[item_current_idx].Color.x;
+  //                  uiSettings.color[1] = psData.primitives[item_current_idx].Color.y;
+  //                  uiSettings.color[2] = psData.primitives[item_current_idx].Color.z;
+  //                  uiSettings.color[3] = psData.primitives[item_current_idx].Color.w;
+  //                  uiSettings.spherePos[0] = psData.primitives[item_current_idx].Position.x;
+  //                  uiSettings.spherePos[1] = psData.primitives[item_current_idx].Position.y;
+  //                  uiSettings.spherePos[2] = psData.primitives[item_current_idx].Position.z;
+  //              }
+
+  //              // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+  //              if (is_selected)
+  //                  ImGui::SetItemDefaultFocus();
+		//		//std::cout << primitiveCount;
+		//		//ShowPlaceholderObject("Object", obj_i);
+		//		//ImGui::SeparatorText("hello");
+		//	}
+		//	//ImGui::EndTable();
+
+		}
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleVar();
+
+
+
     ImGui::SliderFloat("Sphere size", &uiSettings.sphereSize, 0, 100);
 
     ImGui::SliderFloat3("position", uiSettings.spherePos, -100.0, 100.0);
@@ -140,7 +183,7 @@ void SDFEntity::DisplaySDFSettings()
     }
     if (create_sphere)
     {
-        TweakSphereSettings();
+        ShowSphereSettings();
     }
     else if (create_cube)
     {

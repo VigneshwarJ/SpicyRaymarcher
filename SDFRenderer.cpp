@@ -135,7 +135,7 @@ void SDFRenderer::Render()
 			psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
 			XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
 			XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
-			XMStoreFloat3(&(psData->cameraUp), camera->getUp());
+			XMStoreFloat3(&(psData->cameraUp), camera->GetUp());
 			psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
 
 

@@ -26,7 +26,7 @@ public:
 	DirectX::XMVECTOR GetRight() const noexcept;
 
 
-	DirectX::XMVECTOR getUp() const noexcept;
+	DirectX::XMVECTOR GetUp() const noexcept;
 
 
 	Transform* GetTransform();
