@@ -69,11 +69,27 @@ void SDFEntity::ChangeSphereSettings(int no)
 void SDFEntity::ShowSphereSettings()
 {
 	//ImGui::Text("hello");
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
     //if (ImGui::BeginTable("split", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable))
     if (ImGui::TreeNode("Primitives"))
     {
-        ImGui::ListBox("prims", &item_current_idx, psData.primitives, primitiveCount, 4);
+        if (ImGui::BeginListBox("Spheres"))
+        {
+            for (int i = 0; i < primitiveCount; i++)
+            {
+				const bool is_selected = (item_current_idx == i);
+                const char* name = primitivesNames->at(i).c_str(); //idk why it didnt work with [i] but why would strings in c++ ever miss out on a chance to make me miserable and confused
+                if (ImGui::Selectable(name, is_selected))
+                    item_current_idx = i;
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndListBox();
+
+        }
+        //ImGui::ListBox("prims", &item_current_idx, psData.primitives, primitiveCount, 4);
 		//if (ImGui::BeginListBox("Spheres"))
 		//{
 		//	// Iterate placeholder objects (all the same data)
@@ -104,10 +120,10 @@ void SDFEntity::ShowSphereSettings()
 		//	}
 		//	//ImGui::EndTable();
 
-		}
+		//}
         ImGui::TreePop();
     }
-    ImGui::PopStyleVar();
+    //ImGui::PopStyleVar();
 
 
 

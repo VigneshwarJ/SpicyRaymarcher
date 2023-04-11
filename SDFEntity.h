@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <map>
 #include "BufferStructs.h"
 
 struct UISettings
@@ -54,6 +55,12 @@ private:
 	float lightPos[3] = { 0.0, -10.0 , 0.0 };
 	UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;
+
+	//I dont want to have the primitives hold the names themselves. it doesnt 
+	// work well with list boxes, and its unnecessary to send to the shader
+	//std::unique_ptr<std::map<std::string, SDFPrimitive>> primitives;
+	std::unique_ptr<std::vector<SDFPrimitive>> primitives;
+	std::unique_ptr<std::vector<std::string>> primitivesNames;
 
 	RaymarchPSExternalData psData = {};
 };
