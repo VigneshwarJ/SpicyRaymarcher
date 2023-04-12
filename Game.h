@@ -71,9 +71,9 @@ private:
 	std::vector<Light> lights;
 	int lightCount;
 	float color[4]; 
-	float sphereSize; 
+	float size; 
 	float lightPos[3]; 
-	float spherePos[3]; 
+	float position[3]; 
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;

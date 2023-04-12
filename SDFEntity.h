@@ -4,17 +4,22 @@
 #include <map>
 #include "BufferStructs.h"
 #include <string>
-
+#define MAX_PRIMITIVES 50
+#define START_BOXES MAX_PRIMITIVES
 struct UISettings
 {
 	UISettings()
 		//:spheres(sphere),
-		:sphereSize(5.0f)
+		:size(5.0f)
 	{}
-	float color[4] = { 1.0f,1.0f,1.0f,1.0f };;
-	float sphereSize;
-	float spherePos[3] = { 0.0, 0.0 , 7.0 };
+	float size;
+	float position[3] = { 0.0, 0.0 , 7.0 };
 	//SDFSphere* spheres = nullptr;
+	unsigned int materialType = 0;
+
+
+	//materials
+	float color[4] = { 0.0, 0.0 , 1.0,1.0 };
 };
 
 //multiple buttons for particular shapes
@@ -24,10 +29,10 @@ class SDFEntity
 {
 public:
 	SDFEntity():uiSettings(){
-		
+		psData.color[0] = SDFMaterial{ {1,1,1,1} };
 	}
 
-	bool CanAddPrimitive();
+	bool CanAddPrimitive(int count);
 
 	void AddSphere();
 	void AddBox();
@@ -52,7 +57,9 @@ public:
 
 
 private:
-	int primitiveCount = 0;
+	unsigned int sphereCount = 0;
+	unsigned int boxCount = 0;
+	unsigned int materialCount = 1; //default material
 	float lightPos[3] = { 0.0, -10.0 , 0.0 };
 	UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;

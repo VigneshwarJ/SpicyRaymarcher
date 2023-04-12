@@ -34,9 +34,9 @@ Game::Game(HINSTANCE hInstance)
 		true),			   // Show extra stats (fps) in title bar?
 	vsync(false),
 	color{ 1.0f,1.0f,1.0f,1.0f },
-sphereSize(5.0f),
+size(5.0f),
 lightPos{ 0.0, -10.0 , 0.0 },
-spherePos { 0.0, 0.0 , 7.0 }
+position { 0.0, 0.0 , 7.0 }
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode

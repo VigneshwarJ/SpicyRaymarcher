@@ -43,11 +43,11 @@ struct RaymarchPSExternalData
 	DirectX::XMFLOAT3A cameraForward;
 	DirectX::XMFLOAT3A cameraRight;
 	DirectX::XMFLOAT3A cameraUp;
-	DirectX::XMFLOAT3A bgColor;
+	DirectX::XMFLOAT3 bgColor;
+	int boxCount;
 	DirectX::XMFLOAT3 lightPosition;
-	//int sphereCount;
-	//SDFSphere spheres[MAX_SDF_COUNT];
-	int primitiveCount;
+	int sphereCount;
 	SDFPrimitive primitives[MAX_SDF_COUNT];
+	SDFMaterial color[MAX_SDF_COUNT];
 
 };

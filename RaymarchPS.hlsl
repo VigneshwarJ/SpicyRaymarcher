@@ -16,22 +16,26 @@
 //
 //};
 
-#define SDF_TYPE_SPHERE	0
-#define SDF_TYPE_BOX	1
-
+#define MAX_PRIMITIVES 50
+#define START_BOXES MAX_PRIMITIVES
+#define MAX_COUNT 128
 struct SDFPrimitive
 {
 
-	int Type;
+
 	float3 Position;  // 16 bytes
-
-	float Radius; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
+    float Size; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
+	
 	float3 Dimensions;  // 32 bytes
-
-	float4 Color;
-
+	int MaterialType;
 
 };
+
+struct Material
+{
+	float4 color;
+};
+
 // Alignment matters!!!
 cbuffer ExternalData : register(b0)
 {
@@ -40,9 +44,11 @@ cbuffer ExternalData : register(b0)
 	float3 cameraRight;
 	float3 cameraUp;
 	float3 bgColor; // bg color not working
+	int boxCount;
 	float3 lightPosition;
-	int primitiveCount;
-	SDFPrimitive primitives[128];
+	int sphereCount;
+	SDFPrimitive primitives[MAX_COUNT];
+	Material color[MAX_COUNT];
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -87,9 +93,47 @@ float basicUnion(float distance1, float distance2)
 	return min(distance1, distance2);
 }
 
+// union primitives 1 and 2
+// d1 is a vec2 where .x is the distance, and .y is the color/material code.
+float2 opU(float2 d1, float2 d2)
+{
+	return (d1.x < d2.x) ? d1 : d2;
+}
+
+
 float findDistance()
 {
+	////find the distance of the scene at this pixel
+	//for (int i = 0; i < primitiveCount; i++)
+	//{
+	//	float thisPrimDistance = 0.0f;
 
+	//	switch (primitives[i].Type)
+	//	{
+	//	case SDF_TYPE_SPHERE:
+	//		thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+	//		break;
+	//	case SDF_TYPE_BOX:
+	//		thisPrimDistance = box(marcherPosition - primitives[i].Position, primitives[i].Dimensions);
+	//		break;
+	//	default:
+	//		thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+	//		break;
+	//	}
+
+	//	////thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
+
+
+	//	finalDistance = basicUnion(finalDistance, thisPrimDistance);
+	//	//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
+	//	if (finalDistance = thisPrimDistance)
+	//	{
+	//		normal = calculateNormal(marcherPosition, primitives[i].Position);
+	//		//normal = float3(0.0f, 0.0f, 0.0f);
+	//		diffuseColor = primitives[i].Color.xyz;
+	//	}
+	//}
+	
 }
 
 float3 getRayDirection(float2 screenPosition) {
@@ -97,16 +141,6 @@ float3 getRayDirection(float2 screenPosition) {
 	return normalize(direction);
 }
 
-//wat
-float intersectSphere(float3 rayOrigin, float3 rayDirection, float3 spherePosition, float sphereRadius) {
-	float3 L = spherePosition - rayOrigin;
-	float tca = dot(L, rayDirection);
-	if (tca < 0.0) return -1.0;
-	float d2 = dot(L, L) - tca * tca;
-	if (d2 > sphereRadius * sphereRadius) return -1.0;
-	float thc = sqrt(sphereRadius * sphereRadius - d2);
-	return tca - thc;
-}
 
 float3 calculateNormal(float3 position, float3 spherePosition) {
 	return normalize(position - spherePosition);
@@ -120,6 +154,79 @@ float calculateLighting(float3 position, float3 normal) {
 	return diffuse ;
 	//return  diffuseColor;
 }
+
+//// https://iquilezles.org/articles/rmshadows
+//float calcSoftshadow(in float3 ro, in float3 rd, in float mint, in float tmax)
+//{
+//	// bounding volume
+//	float tp = (0.8 - ro.y) / rd.y; if (tp > 0.0) tmax = min(tmax, tp);
+//
+//	float res = 1.0;
+//	float t = mint;
+//	for (int i = 0; i < 24; i++)
+//	{
+//		float h = map(ro + rd * t).x;
+//		float s = clamp(8.0 * h / t, 0.0, 1.0);
+//		res = min(res, s);
+//		t += clamp(h, 0.01, 0.2);
+//		if (res<0.004 || t>tmax) break;
+//	}
+//	res = clamp(res, 0.0, 1.0);
+//	return res * res * (3.0 - 2.0 * res);
+//}
+//
+//// https://iquilezles.org/articles/normalsSDF
+//float3 calcNormal(in float3 pos)
+//{
+//#if 0
+//	vec2 e = vec2(1.0, -1.0) * 0.5773 * 0.0005;
+//	return normalize(e.xyy * map(pos + e.xyy).x +
+//		e.yyx * map(pos + e.yyx).x +
+//		e.yxy * map(pos + e.yxy).x +
+//		e.xxx * map(pos + e.xxx).x);
+//#else
+//	// inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
+//	float3 n = float3(0.0);
+//	for (int i = ZERO; i < 4; i++)
+//	{
+//		float3 e = 0.5773 * (2.0 * float3((((i + 3) >> 1) & 1), ((i >> 1) & 1), (i & 1)) - 1.0);
+//		n += e * map(pos + 0.0005 * e).x;
+//		//if( n.x+n.y+n.z>100.0 ) break;
+//	}
+//	return normalize(n);
+//#endif    
+//}
+//
+//// https://iquilezles.org/articles/nvscene2008/rwwtt.pdf
+//float calcAO(in float3 pos, in float3 nor)
+//{
+//	float occ = 0.0;
+//	float sca = 1.0;
+//	for (int i = ZERO; i < 5; i++)
+//	{
+//		float h = 0.01 + 0.12 * float(i) / 4.0;
+//		float d = map(pos + h * nor).x;
+//		occ += (h - d) * sca;
+//		sca *= 0.95;
+//		if (occ > 0.35) break;
+//	}
+//	return clamp(1.0 - 3.0 * occ, 0.0, 1.0) * (0.5 + 0.5 * nor.y);
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 float4 main(VertexToPixel input) : SV_Target{
 	//float3 spherePosition = float3(0.0f, 0.0f, 5.0f);
@@ -146,36 +253,45 @@ float4 main(VertexToPixel input) : SV_Target{
 	{
 		float3 normal;
 		float3 diffuseColor;
+
 		//find the distance of the scene at this pixel
-		for (int i = 0; i < primitiveCount; i++)
+		for (int i = 0; i < sphereCount; i++)
 		{
 			float thisPrimDistance = 0.0f;
 
-			switch (primitives[i].Type)
-			{
-			case SDF_TYPE_SPHERE:
-				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
-				break;
-			case SDF_TYPE_BOX:
-				thisPrimDistance = box(marcherPosition - primitives[i].Position, primitives[i].Dimensions);
-				break;
-			default:
-				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
-				break;
-			}
+				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Size);
+				
+		       finalDistance = basicUnion(finalDistance, thisPrimDistance);
+			   //if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
+			   if (finalDistance = thisPrimDistance)
+			   {
+				   normal = calculateNormal(marcherPosition, primitives[i].Position);
+				   //normal = float3(0.0f, 0.0f, 0.0f);
+				   diffuseColor = color[primitives[i].MaterialType].color.xyz;
+			   }
+		}
 
 			////thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
 
 
+
+		for (int i = MAX_PRIMITIVES; i < boxCount; i++)
+		{
+			float thisPrimDistance = 0.0f;
+
+			thisPrimDistance = box(marcherPosition - primitives[i].Position, primitives[i].Dimensions);
 			finalDistance = basicUnion(finalDistance, thisPrimDistance);
 			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
 			if (finalDistance = thisPrimDistance)
 			{
 				//normal = calculateNormal(marcherPosition, primitives[i].Position);
 				normal = float3(0.0f, 0.0f, 0.0f);
-				diffuseColor = primitives[i].Color.xyz;
+				diffuseColor = color[primitives[i].MaterialType].color.xyz;
 			}
 		}
+			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
+			
+		
 
 		//march the ray forward
 		marcherPosition += rayDirection * finalDistance;
@@ -188,28 +304,11 @@ float4 main(VertexToPixel input) : SV_Target{
 			float diffuse = calculateLighting(position, normal);
 			float3 ambient = 0.1;
 			//float3 diffuseColor = primitives[i].Color.xyz;
-			finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
+			finalcolor = float4(ambient + diffuseColor * diffuse, 1.0);
 			//finalcolor = float4(normal.xyz, 0.0f);
 			break;
 		}
 	}
 
-	//for (int i = 0; i < primitiveCount; i++)
-	//{
-	//	float t = intersectSphere(cameraPosition, rayDirection, primitives[i].Position, primitives[i].Radius);
-	//	//float t = intersectSphere(cameraPosition, rayDirection, primitives[i].Position, primitives[i].Radius);
-
-	//	if (t < 0.0) {
-	//		continue;
-	//	}
-	//	else {
-	//		float3 position = cameraPosition + t * rayDirection;
-	//		float3 normal = calculateNormal(position, primitives[i].Position);
-	//		float diffuse = calculateLighting(position, normal);
-	//		float3 ambient = 0.1;
-	//		float3 diffuseColor = primitives[i].Color.xyz;
-	//		finalcolor = float4(ambient + diffuseColor * diffuse, primitives[i].Color.w);
-	//	}
-	//}
 	return finalcolor;
 }

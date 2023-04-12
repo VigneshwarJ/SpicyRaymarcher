@@ -12,9 +12,12 @@ static bool create_cone = false;
 
 static int item_current_idx = 0;
 static bool continuos_update = false;
-bool SDFEntity::CanAddPrimitive()
+
+
+
+bool SDFEntity::CanAddPrimitive(int count)
 {
-    if (primitiveCount >= MAX_SDF_COUNT)
+    if (count >= MAX_PRIMITIVES)
     {
         std::cerr << "Max sdf primitives count reached\n";
         return false;
@@ -24,32 +27,29 @@ bool SDFEntity::CanAddPrimitive()
 
 void  SDFEntity::AddSphere()
 {
-    if (!CanAddPrimitive())
+    if (!CanAddPrimitive(sphereCount))
         return;
 
-    psData.primitives[primitiveCount].Radius = uiSettings.sphereSize;
-    psData.primitives[primitiveCount].Color = DirectX::XMFLOAT4(uiSettings.color);
-    psData.primitives[primitiveCount].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
-    psData.primitives[primitiveCount].Type = SDF_TYPE_SPHERE;
+    psData.primitives[sphereCount].Size = uiSettings.size;
+    psData.primitives[sphereCount].MaterialType = uiSettings.materialType;
+    psData.primitives[sphereCount].Position = DirectX::XMFLOAT3(uiSettings.position);
+    psData.primitives[sphereCount].MaterialType = SDF_TYPE_SPHERE;
 
 
-    primitiveCount++;
+    sphereCount++;
     //primitivesNames->push_back("hello");// std::to_string(primitiveCount));
 }
 
 void SDFEntity::AddBox()
 {
-    if (!CanAddPrimitive())
+    if (!CanAddPrimitive(boxCount))
         return;
 
-    psData.primitives[primitiveCount].Color = DirectX::XMFLOAT4(uiSettings.color);
-    psData.primitives[primitiveCount].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
-    psData.primitives[primitiveCount].Dimensions = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-    psData.primitives[primitiveCount].Type = SDF_TYPE_BOX;
+    psData.primitives[MAX_PRIMITIVES+  boxCount].MaterialType = uiSettings.materialType;
+    psData.primitives[MAX_PRIMITIVES + boxCount].Position = DirectX::XMFLOAT3(uiSettings.position);
+    psData.primitives[MAX_PRIMITIVES + boxCount].Dimensions = DirectX::XMFLOAT3(uiSettings.size, uiSettings.size, uiSettings.size);
 
-
-
-    primitiveCount++;
+    boxCount++;
 }
 
 void SDFEntity::ChangeSphereSettings(int no)
@@ -60,9 +60,9 @@ void SDFEntity::ChangeSphereSettings(int no)
         return;
     }
 
-    psData.primitives[no].Radius = uiSettings.sphereSize;
-    psData.primitives[no].Color = DirectX::XMFLOAT4(uiSettings.color);
-    psData.primitives[no].Position = DirectX::XMFLOAT3(uiSettings.spherePos);
+    psData.primitives[no].Size = uiSettings.size;
+    psData.primitives[no].MaterialType = uiSettings.materialType;
+    psData.primitives[no].Position = DirectX::XMFLOAT3(uiSettings.position);
     
 }
 
@@ -130,10 +130,10 @@ void SDFEntity::ShowSphereSettings()
 
 
 
-    ImGui::SliderFloat("Sphere size", &uiSettings.sphereSize, 0, 100);
+    ImGui::SliderFloat("Sphere size", &uiSettings.size, 0, 100);
 
-    ImGui::SliderFloat3("position", uiSettings.spherePos, -100.0, 100.0);
-    ImGui::ColorEdit3("color", uiSettings.color);
+    ImGui::SliderFloat3("position", uiSettings.position, -100.0, 100.0);
+    ImGui::ColorEdit3("Material color", uiSettings.color);
     ImGui::Checkbox("continuous update", &continuos_update);
     if (ImGui::Button("CreateSphere"))
     {
@@ -146,7 +146,7 @@ void SDFEntity::ShowSphereSettings()
 
     if (ImGui::BeginListBox("Spheres"))
     {
-        for (int n = 0; n < GetSDFEntity()->primitiveCount; n++)
+        for (int n = 0; n < GetSDFEntity()->sphereCount; n++)
         {
             const bool is_selected = (item_current_idx == n);
             char i[2] = { n + '0','\0' };
@@ -154,14 +154,11 @@ void SDFEntity::ShowSphereSettings()
             {
                 item_current_idx = n;
                 continuos_update = false;
-                uiSettings.sphereSize = psData.primitives[item_current_idx].Radius;
-                uiSettings.color[0] = psData.primitives[item_current_idx].Color.x;
-                uiSettings.color[1] = psData.primitives[item_current_idx].Color.y;
-                uiSettings.color[2] = psData.primitives[item_current_idx].Color.z;
-                uiSettings.color[3] = psData.primitives[item_current_idx].Color.w ;
-                uiSettings.spherePos[0] = psData.primitives[item_current_idx].Position.x;
-                uiSettings.spherePos[1] = psData.primitives[item_current_idx].Position.y;
-                uiSettings.spherePos[2] = psData.primitives[item_current_idx].Position.z;
+                uiSettings.size = psData.primitives[item_current_idx].Size;
+                uiSettings.position[0] = psData.primitives[item_current_idx].Position.x;
+                uiSettings.position[1] = psData.primitives[item_current_idx].Position.y;
+                uiSettings.position[2] = psData.primitives[item_current_idx].Position.z;
+                uiSettings.materialType = psData.primitives[item_current_idx].MaterialType;
             }
 
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -170,13 +167,14 @@ void SDFEntity::ShowSphereSettings()
         }
         ImGui::EndListBox();
     }
-    if (GetSDFEntity()->primitiveCount > 0)
+    if (GetSDFEntity()->sphereCount > 0)
     {
         if (continuos_update)
         {
             GetSDFEntity()->ChangeSphereSettings(item_current_idx);
         }
     }
+    //Add one for box or put code for box in this
 }
 
 void SDFEntity::DisplaySDFSettings()
@@ -222,6 +220,7 @@ void SDFEntity::DisplaySDFSettings()
 RaymarchPSExternalData* SDFEntity::GetRayMarchPSData()
 {
     psData.lightPosition = DirectX::XMFLOAT3A(lightPos);
-    psData.primitiveCount = primitiveCount;
+    psData.sphereCount = sphereCount;
+    psData.boxCount = START_BOXES + boxCount;
     return &psData;
 }

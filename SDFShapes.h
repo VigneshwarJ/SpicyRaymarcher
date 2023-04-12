@@ -24,16 +24,17 @@
 
 struct SDFPrimitive //todo: low priority right now, but it may be good to have some sort of error checking or assertion of some kind, IE warn user when they try to assign a radius to type box
 {
-	int Type;
 	DirectX::XMFLOAT3 Position;  // 16 bytes
+	float Size; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
 
-	float Radius; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
 	DirectX::XMFLOAT3 Dimensions;  // 32 bytes
-
-	DirectX::XMFLOAT4 Color;
-	//....
-
-
+	int MaterialType;
 };
+
+struct SDFMaterial
+{
+	DirectX::XMFLOAT4 color;
+};
+
 
 // TODO: Add more shapes
