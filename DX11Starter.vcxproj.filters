@@ -220,5 +220,8 @@
     <None Include="Lighting.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="DistanceFunctions.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

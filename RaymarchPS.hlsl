@@ -16,25 +16,27 @@
 //
 //};
 
+#include "DistanceFunctions.hlsli"
+
 #define MAX_PRIMITIVES 50
 #define START_BOXES MAX_PRIMITIVES
 #define MAX_COUNT 128
-struct SDFPrimitive
-{
-
-
-	float3 Position;  // 16 bytes
-    float Size; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
-	
-	float3 Dimensions;  // 32 bytes
-	int MaterialType;
-
-};
 
 struct Material
 {
 	float4 color;
 };
+//struct SDFPrimitive
+//{
+//
+//
+//	float3 Position;  // 16 bytes
+//    float Size; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
+//	
+//	float3 Dimensions;  // 32 bytes
+//	int MaterialType;
+//
+//};
 
 // Alignment matters!!!
 cbuffer ExternalData : register(b0)
@@ -75,30 +77,30 @@ struct VertexToPixel
 //
 //
 
-float sphere(float3 position, float radius)
-{
-	return length(position) - radius;
-}
-
-//this formula worked as is in unreal, its *extremely* unlikely that the math here is wrong
-float box(float3 position, float3 bDimensions)
-{
-	float3 q = abs(position) - bDimensions;
-	return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
-}
-
-//by finding the closest distance between the two points, we can join two primitives together
-float basicUnion(float distance1, float distance2)
-{
-	return min(distance1, distance2);
-}
-
-// union primitives 1 and 2
-// d1 is a vec2 where .x is the distance, and .y is the color/material code.
-float2 opU(float2 d1, float2 d2)
-{
-	return (d1.x < d2.x) ? d1 : d2;
-}
+//float sphere(float3 position, float radius)
+//{
+//	return length(position) - radius;
+//}
+//
+////this formula worked as is in unreal, its *extremely* unlikely that the math here is wrong
+//float box(float3 position, float3 bDimensions)
+//{
+//	float3 q = abs(position) - bDimensions;
+//	return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+//}
+//
+////by finding the closest distance between the two points, we can join two primitives together
+//float basicUnion(float distance1, float distance2)
+//{
+//	return min(distance1, distance2);
+//}
+//
+//// union primitives 1 and 2
+//// d1 is a vec2 where .x is the distance, and .y is the color/material code.
+//float2 opU(float2 d1, float2 d2)
+//{
+//	return (d1.x < d2.x) ? d1 : d2;
+//}
 
 
 float findDistance()
@@ -224,10 +226,6 @@ float calculateLighting(float3 position, float3 normal) {
 
 
 
-
-
-
-
 float4 main(VertexToPixel input) : SV_Target{
 	//float3 spherePosition = float3(0.0f, 0.0f, 5.0f);
 	//float sphereRadius = 5.0f;
@@ -241,18 +239,20 @@ float4 main(VertexToPixel input) : SV_Target{
 
 	float4 finalcolor = float4(bgColor, 1.0);
 
-	//The cuttoff point at which we say "hit something!"
-	float rmHitDistance = 1.0;
-	int maxSteps = 500;
+	////The cuttoff point at which we say "hit something!"
+	float rmHitDistance = 0.3; //this should be made dynamic or a parameter somehow
+	int maxSteps = 50;
 	//float distances[primitivesCount];
 	float finalDistance = 10000.0f;
+	float startDistance = finalDistance;
 	float3 marcherPosition = cameraPosition; //start marching at the camera position
+	
+	//return float4(((float(maxSteps)/2) / float(maxSteps)), 0.0f, 0.0f, 0.0f);
 
-
+	float3 normal;
+	float3 diffuseColor;
 	for (int i = 0; i < maxSteps; i++)
 	{
-		float3 normal;
-		float3 diffuseColor;
 
 		//find the distance of the scene at this pixel
 		for (int i = 0; i < sphereCount; i++)
@@ -262,13 +262,14 @@ float4 main(VertexToPixel input) : SV_Target{
 				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Size);
 				
 		       finalDistance = basicUnion(finalDistance, thisPrimDistance);
-			   //if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
-			   if (finalDistance = thisPrimDistance)
-			   {
-				   normal = calculateNormal(marcherPosition, primitives[i].Position);
-				   //normal = float3(0.0f, 0.0f, 0.0f);
 				   diffuseColor = color[primitives[i].MaterialType].color.xyz;
-			   }
+			   //if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
+			   //if (finalDistance = thisPrimDistance)
+			   //{
+				   normal = calculateNormal(marcherPosition, primitives[i].Position);
+				  // //normal = float3(0.0f, 0.0f, 0.0f);
+				  // diffuseColor = color[primitives[i].MaterialType].color.xyz;
+			   //}
 		}
 
 			////thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Radius);
@@ -282,12 +283,13 @@ float4 main(VertexToPixel input) : SV_Target{
 			thisPrimDistance = box(marcherPosition - primitives[i].Position, primitives[i].Dimensions);
 			finalDistance = basicUnion(finalDistance, thisPrimDistance);
 			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
-			if (finalDistance = thisPrimDistance)
-			{
+			diffuseColor = color[primitives[i].MaterialType].color.xyz;
+			//if (finalDistance = thisPrimDistance)
+			//{
 				//normal = calculateNormal(marcherPosition, primitives[i].Position);
-				normal = float3(0.0f, 0.0f, 0.0f);
-				diffuseColor = color[primitives[i].MaterialType].color.xyz;
-			}
+			//	normal = float3(0.0f, 0.0f, 0.0f);
+			//	diffuseColor = color[primitives[i].MaterialType].color.xyz;
+			//}
 		}
 			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
 			
@@ -299,6 +301,8 @@ float4 main(VertexToPixel input) : SV_Target{
 		//check current distance against the stop distance
 		if (finalDistance < rmHitDistance)
 		{
+			normal = calculateNormal(marcherPosition, primitives[i].Position);
+			//normal = float3(0.0f, 0.0f, 0.0f);//shortcut for not worrying about normals right now
 			float3 position = marcherPosition;//cameraPosition + finalDistance * rayDirection;
 			//float3 normal = calculateNormal(position, primitives[i].Position);
 			float diffuse = calculateLighting(position, normal);
@@ -306,9 +310,11 @@ float4 main(VertexToPixel input) : SV_Target{
 			//float3 diffuseColor = primitives[i].Color.xyz;
 			finalcolor = float4(ambient + diffuseColor * diffuse, 1.0);
 			//finalcolor = float4(normal.xyz, 0.0f);
+			//finalcolor = float4((float(i)/ float(maxSteps)), 1.0f - (float(i) / float(maxSteps)), 0.0f, 0.0f); //this will return the same color for every hit pixel though
 			break;
 		}
 	}
+
 
 	return finalcolor;
 }

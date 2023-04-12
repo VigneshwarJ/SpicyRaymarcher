@@ -236,6 +236,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="DistanceFunctions.hlsli" />
     <None Include="Lighting.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
