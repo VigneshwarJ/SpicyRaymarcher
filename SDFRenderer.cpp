@@ -12,6 +12,7 @@
 #include <d3dcompiler.h>
 #include "SDFEntity.h"
 
+#include <iostream>
 
 void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
 {
@@ -130,6 +131,7 @@ void SDFRenderer::Render()
 			*/
 			
 			auto entity = SDFEntity::GetSDFEntity();
+			//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
 			auto psData = entity->GetRayMarchPSData();
 			XMFLOAT3 pos = camera->GetTransform()->GetPosition();
 			psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);

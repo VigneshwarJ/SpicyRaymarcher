@@ -6,6 +6,8 @@
 #include <string>
 #define MAX_PRIMITIVES 50
 #define START_BOXES MAX_PRIMITIVES
+
+
 struct UISettings
 {
 	UISettings()
@@ -24,11 +26,19 @@ struct UISettings
 
 //multiple buttons for particular shapes
 //enum for shape types
+enum class SDFType
+{
+	Sphere,
+	Box
+};
 
 class SDFEntity
 {
 public:
+	//SDFEntity();
+
 	SDFEntity():uiSettings(){
+
 		psData.color[0] = SDFMaterial{ {1,1,1,1} };
 	}
 
@@ -37,7 +47,9 @@ public:
 	void AddSphere();
 	void AddBox();
 	void ChangeSphereSettings(int number);
-	void ShowSphereSettings();
+	void UpdateGUI();
+	void ShowSphereSettings(int selectedIndex);
+	void ShowBoxSettings(int selectedIndex);
 
 	void DisplaySDFSettings();
 
@@ -53,6 +65,7 @@ public:
 	{
 		return lightPos;
 	}
+	//std::shared_ptr<RaymarchPSExternalData> GetRayMarchPSData();
 	RaymarchPSExternalData* GetRayMarchPSData();
 
 
@@ -67,9 +80,11 @@ private:
 	//I dont want to have the primitives hold the names themselves. it doesnt 
 	// work well with list boxes, and its unnecessary to send to the shader
 	//std::unique_ptr<std::map<std::string, SDFPrimitive>> primitives;
+	std::unique_ptr<std::map<std::string, SDFType>> nameToType = std::make_unique<std::map<std::string, SDFType>>();
 	//std::unique_ptr<std::vector<SDFPrimitive>> primitives;
 	std::unique_ptr<std::vector<std::string>> primitivesNames = std::make_unique<std::vector<std::string>>();
 
+	//std::shared_ptr<RaymarchPSExternalData> psData = {}; //better, but wait until the rest of this is fixed
 	RaymarchPSExternalData psData = {};
 };
 

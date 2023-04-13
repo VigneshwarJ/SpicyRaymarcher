@@ -29,7 +29,9 @@ public:
 	// will be called automatically
 	void Init();
 	void OnResize();
-	void UpdateImGui();
+
+
+	//void UpdateImGui();
 	void UpdateGUI();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
