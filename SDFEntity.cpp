@@ -213,8 +213,8 @@ void SDFEntity::ShowSphereSettings(int selectedIndex)
 void SDFEntity::ShowBoxSettings(int selectedIndex)
 {
     ImGui::SeparatorText("Box Settings");
-    ImGui::SliderFloat3("Position", (float*)&psData.primitives[selectedIndex].Position, -100.0, 100.0);
-    ImGui::SliderFloat3("Dimensions", (float*)&psData.primitives[selectedIndex].Dimensions, -100.0, 100.0);
+    ImGui::SliderFloat3("Position", (float*)&psData.primitives[MAX_PRIMITIVES + selectedIndex].Position, -100.0, 100.0);
+    ImGui::SliderFloat3("Dimensions", (float*)&psData.primitives[MAX_PRIMITIVES + selectedIndex].Dimensions, -100.0, 100.0);
 
 }
 
