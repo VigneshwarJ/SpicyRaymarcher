@@ -22,7 +22,7 @@
 //
 //};
 
-struct SDFPrimitive //todo: low priority right now, but it may be good to have some sort of error checking or assertion of some kind, IE warn user when they try to assign a radius to type box
+struct SDFPrimRenderData //todo: low priority right now, but it may be good to have some sort of error checking or assertion of some kind, IE warn user when they try to assign a radius to type box
 {
 	DirectX::XMFLOAT3 Position;  // 16 bytes
 	float Size; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)

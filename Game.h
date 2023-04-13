@@ -15,6 +15,7 @@
 #include "SDFEntity.h"
 
 #include "Utils.h"
+#include "UIManager.h"
 
 class Game 
 	: public DXCore

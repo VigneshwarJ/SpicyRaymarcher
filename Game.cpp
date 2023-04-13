@@ -141,7 +141,8 @@ void Game::Update(float deltaTime, float totalTime)
 	//}
 
 
-	UpdateGUI();
+	//UpdateGUI();
+	UIManager::UIUpdate();
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))

@@ -240,7 +240,7 @@ float4 main(VertexToPixel input) : SV_Target{
 	float4 finalcolor = float4(bgColor, 1.0);
 
 	////The cuttoff point at which we say "hit something!"
-	float rmHitDistance = 0.3; //this should be made dynamic or a parameter somehow
+	float rmHitDistance = 0.01; //this should be made dynamic or a parameter somehow
 	int maxSteps = 50;
 	//float distances[primitivesCount];
 	float finalDistance = 10000.0f;

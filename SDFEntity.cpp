@@ -73,12 +73,8 @@ void SDFEntity::ChangeSphereSettings(int no)
 
 void SDFEntity::UpdateGUI()
 {
-    //ImGui::Text("hello");
-    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-    //if (ImGui::BeginTable("split", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable))
     if (ImGui::TreeNode("Primitives"))
     {
-        //ImGui::Text("uuuuuh list box here soon");
         if (ImGui::BeginListBox("Primitives"))
         {
             for (int i = 0; i < sphereCount + boxCount; i++)
@@ -96,52 +92,15 @@ void SDFEntity::UpdateGUI()
 
         }
 
-        //------------------------------------------------------------------------------------------
-               //ImGui::ListBox("prims", &item_current_idx, psData.primitives, primitiveCount, 4);
-               //if (ImGui::BeginListBox("Spheres"))
-               //{
-               //	// Iterate placeholder objects (all the same data)
-               //	for (int i = 0; i < primitiveCount; i++)
-               //	{
-         //              const bool is_selected = (item_current_idx == i);
-         //              //char i[2] = { n + '0','\0' };
-         //              if (ImGui::Selectable(i, is_selected))
-         //              {
-         //                  item_current_idx = n;
-         //                  continuos_update = false;
-         //                  uiSettings.sphereSize = psData.primitives[item_current_idx].Radius;
-         //                  uiSettings.color[0] = psData.primitives[item_current_idx].Color.x;
-         //                  uiSettings.color[1] = psData.primitives[item_current_idx].Color.y;
-         //                  uiSettings.color[2] = psData.primitives[item_current_idx].Color.z;
-         //                  uiSettings.color[3] = psData.primitives[item_current_idx].Color.w;
-         //                  uiSettings.spherePos[0] = psData.primitives[item_current_idx].Position.x;
-         //                  uiSettings.spherePos[1] = psData.primitives[item_current_idx].Position.y;
-         //                  uiSettings.spherePos[2] = psData.primitives[item_current_idx].Position.z;
-         //              }
 
-         //              // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-         //              if (is_selected)
-         //                  ImGui::SetItemDefaultFocus();
-               //		//std::cout << primitiveCount;
-               //		//ShowPlaceholderObject("Object", obj_i);
-               //		//ImGui::SeparatorText("hello");
-               //	}
-               //	//ImGui::EndTable();
-
-               //}
         ImGui::TreePop();
     }
-    //ImGui::PopStyleVar();
     if (primitivesNames->size() > 0)
     {
         switch (nameToType->at(primitivesNames->at(item_current_idx)))
         {
         case SDFType::Sphere:
-            ShowSphereSettings(item_current_idx);//---
-            //ImGui::SliderFloat("Sphere size", &uiSettings.size, 0, 100);
-
-            //ImGui::SliderFloat3("position", uiSettings.position, -100.0, 100.0);
-            //---
+            ShowSphereSettings(item_current_idx);
             break;
 
         case SDFType::Box:
@@ -154,7 +113,7 @@ void SDFEntity::UpdateGUI()
     }
     ImGui::Separator();
     ImGui::ColorEdit3("Material color", uiSettings.color);
-    //ImGui::Checkbox("continuous update", &continuos_update);
+
     ImGui::Separator();
     if (ImGui::Button("CreateSphere"))
     {
@@ -165,37 +124,6 @@ void SDFEntity::UpdateGUI()
         AddBox();
     }
 
-    //if (ImGui::BeginListBox("Spheres"))
-    //{
-    //    for (int n = 0; n < GetSDFEntity()->sphereCount; n++)
-    //    {
-    //        const bool is_selected = (item_current_idx == n);
-    //        char i[2] = { n + '0','\0' };
-    //        if (ImGui::Selectable(i, is_selected))
-    //        {
-    //            item_current_idx = n;
-    //            continuos_update = false;
-    //            uiSettings.size = psData.primitives[item_current_idx].Size;
-    //            uiSettings.position[0] = psData.primitives[item_current_idx].Position.x;
-    //            uiSettings.position[1] = psData.primitives[item_current_idx].Position.y;
-    //            uiSettings.position[2] = psData.primitives[item_current_idx].Position.z;
-    //            uiSettings.materialType = psData.primitives[item_current_idx].MaterialType;
-    //        }
-
-    //        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-    //        if (is_selected)
-    //            ImGui::SetItemDefaultFocus();
-    //    }
-    //    ImGui::EndListBox();
-    //}
-    //if (GetSDFEntity()->sphereCount > 0)
-    //{
-    //    if (continuos_update)
-    //    {
-    //        GetSDFEntity()->ChangeSphereSettings(item_current_idx);
-    //    }
-    //}
-    //Add one for box or put code for box in this
 }
 
 void SDFEntity::ShowSphereSettings(int selectedIndex)
