@@ -49,7 +49,8 @@ cbuffer ExternalData : register(b0)
 	int boxCount;
 	float3 lightPosition;
 	int sphereCount;
-	SDFPrimitive primitives[MAX_COUNT];
+	SDFPrimitive spherePrims[MAX_COUNT];
+	SDFPrimitive boxPrims[MAX_COUNT];
 	Material color[MAX_COUNT];
 }
 
@@ -259,14 +260,14 @@ float4 main(VertexToPixel input) : SV_Target{
 		{
 			float thisPrimDistance = 0.0f;
 
-				thisPrimDistance = sphere(marcherPosition - primitives[i].Position, primitives[i].Size);
+				thisPrimDistance = sphere(marcherPosition - spherePrims[i].Position, spherePrims[i].Size);
 				
 		       finalDistance = basicUnion(finalDistance, thisPrimDistance);
-				   diffuseColor = color[primitives[i].MaterialType].color.xyz;
+				   diffuseColor = color[spherePrims[i].MaterialType].color.xyz;
 			   //if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
 			   //if (finalDistance = thisPrimDistance)
 			   //{
-				   normal = calculateNormal(marcherPosition, primitives[i].Position);
+				   normal = calculateNormal(marcherPosition, spherePrims[i].Position);
 				  // //normal = float3(0.0f, 0.0f, 0.0f);
 				  // diffuseColor = color[primitives[i].MaterialType].color.xyz;
 			   //}
@@ -276,17 +277,17 @@ float4 main(VertexToPixel input) : SV_Target{
 
 
 
-		for (int i = MAX_PRIMITIVES; i < boxCount; i++)
+		for (int i = 0; i < boxCount; i++)
 		{
 			float thisPrimDistance = 0.0f;
 
-			thisPrimDistance = box(marcherPosition - primitives[i].Position, primitives[i].Dimensions);
+			thisPrimDistance = box(marcherPosition - boxPrims[i].Position, boxPrims[i].Dimensions);
 			finalDistance = basicUnion(finalDistance, thisPrimDistance);
 			//if the final distance is equal to the primitive distance, then this was prim the closest element to the camera in this pixel path
-			diffuseColor = color[primitives[i].MaterialType].color.xyz;
+			diffuseColor = color[boxPrims[i].MaterialType].color.xyz;
 			//if (finalDistance = thisPrimDistance)
 			//{
-				//normal = calculateNormal(marcherPosition, primitives[i].Position);
+				normal = calculateNormal(marcherPosition, boxPrims[i].Position);
 			//	normal = float3(0.0f, 0.0f, 0.0f);
 			//	diffuseColor = color[primitives[i].MaterialType].color.xyz;
 			//}
@@ -301,7 +302,7 @@ float4 main(VertexToPixel input) : SV_Target{
 		//check current distance against the stop distance
 		if (finalDistance < rmHitDistance)
 		{
-			normal = calculateNormal(marcherPosition, primitives[i].Position);
+			//normal = calculateNormal(marcherPosition, primitives[i].Position);
 			//normal = float3(0.0f, 0.0f, 0.0f);//shortcut for not worrying about normals right now
 			float3 position = marcherPosition;//cameraPosition + finalDistance * rayDirection;
 			//float3 normal = calculateNormal(position, primitives[i].Position);

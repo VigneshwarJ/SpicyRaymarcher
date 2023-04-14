@@ -87,10 +87,13 @@ private:
 
 	//I dont want to have the primitives hold the names themselves. it doesnt 
 	// work well with list boxes, and its unnecessary to send to the shader
-	std::unique_ptr<std::map<std::string, SDFPrimRenderData>> primitives;
-	std::unique_ptr<std::map<std::string, SDFType>> nameToType = std::make_unique<std::map<std::string, SDFType>>();
-	//std::unique_ptr<std::vector<SDFPrimitive>> primitives;
-	std::unique_ptr<std::vector<std::string>> primitivesNames = std::make_unique<std::vector<std::string>>();
+	//std::unique_ptr<std::map<std::string, SDFPrimRenderData>> primitives;
+	//std::unique_ptr<std::map<std::string, SDFType>> nameToType = std::make_unique<std::map<std::string, SDFType>>();
+	////std::unique_ptr<std::vector<SDFPrimitive>> primitives;
+	//std::unique_ptr<std::vector<std::string>> primitivesNames = std::make_unique<std::vector<std::string>>();
+
+	std::unique_ptr<std::vector<PrimitiveData>> primitives = std::make_unique<std::vector<PrimitiveData>>();
+
 
 	//std::shared_ptr<RaymarchPSExternalData> psData = {}; //better, but wait until the rest of this is fixed
 	RaymarchPSExternalData psData = {};

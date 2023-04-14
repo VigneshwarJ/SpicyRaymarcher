@@ -30,16 +30,26 @@ void  SDFEntity::AddSphere()
     if (!CanAddPrimitive(sphereCount))
         return;
 
-    psData.primitives[sphereCount].Size = uiSettings.size;
-    psData.primitives[sphereCount].MaterialType = uiSettings.materialType;
-    psData.primitives[sphereCount].Position = DirectX::XMFLOAT3(uiSettings.position);
-    psData.primitives[sphereCount].MaterialType = SDF_TYPE_SPHERE;
+    //psData.primitives[sphereCount].Size = uiSettings.size;
+    //psData.primitives[sphereCount].MaterialType = uiSettings.materialType;
+    //psData.primitives[sphereCount].Position = DirectX::XMFLOAT3(uiSettings.position);
+    //psData.primitives[sphereCount].MaterialType = SDF_TYPE_SPHERE;
 
 
     sphereCount++;
+
+    //SDFPrimRenderData renderData = {};
+    
+
     std::string name = "sphere" + std::to_string(sphereCount);
-    primitivesNames->push_back(name);// std::to_string(primitiveCount));
-    nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Sphere));
+    PrimitiveData newPrim = {};
+    newPrim.name = name;
+    newPrim.type = SDFType::Sphere;
+    newPrim.renderData = {}; //new struct with default values
+    //newPrim.renderData
+    //primitivesNames->push_back(name);// std::to_string(primitiveCount));
+    //nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Sphere));
+    primitives->push_back(newPrim);
 }
 
 void SDFEntity::AddBox()
@@ -47,14 +57,18 @@ void SDFEntity::AddBox()
     if (!CanAddPrimitive(boxCount))
         return;
 
-    psData.primitives[MAX_PRIMITIVES+  boxCount].MaterialType = uiSettings.materialType;
+   /* psData.primitives[MAX_PRIMITIVES+  boxCount].MaterialType = uiSettings.materialType;
     psData.primitives[MAX_PRIMITIVES + boxCount].Position = DirectX::XMFLOAT3(uiSettings.position);
-    psData.primitives[MAX_PRIMITIVES + boxCount].Dimensions = DirectX::XMFLOAT3(uiSettings.size, uiSettings.size, uiSettings.size);
+    psData.primitives[MAX_PRIMITIVES + boxCount].Dimensions = DirectX::XMFLOAT3(uiSettings.size, uiSettings.size, uiSettings.size);*/
 
     boxCount++;
-    std::string name = "box" + std::to_string(boxCount);
-    primitivesNames->push_back(name);// std::to_string(primitiveCount));
-    nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Box));
+    std::string name = "box" + std::to_string(boxCount);    PrimitiveData newPrim = {};
+    newPrim.name = name;
+    newPrim.type = SDFType::Box;
+    newPrim.renderData = {}; //new struct with default values
+    primitives->push_back(newPrim);
+    //primitivesNames->push_back(name);// std::to_string(primitiveCount));
+    //nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Box));
 }
 
 void SDFEntity::ChangeSphereSettings(int no)
@@ -65,9 +79,9 @@ void SDFEntity::ChangeSphereSettings(int no)
         return;
     }
 
-    psData.primitives[no].Size = uiSettings.size;
-    psData.primitives[no].MaterialType = uiSettings.materialType;
-    psData.primitives[no].Position = DirectX::XMFLOAT3(uiSettings.position);
+    psData.spherePrims[no].Size = uiSettings.size;
+    psData.spherePrims[no].MaterialType = uiSettings.materialType;
+    psData.spherePrims[no].Position = DirectX::XMFLOAT3(uiSettings.position);
     
 }
 
@@ -80,7 +94,7 @@ void SDFEntity::UpdateGUI()
             for (int i = 0; i < sphereCount + boxCount; i++)
             {
                 const bool is_selected = (item_current_idx == i);
-                const char* name = primitivesNames->at(i).c_str(); //idk why it didnt work with [i] but why would strings in c++ ever miss out on a chance to make me miserable and confused
+                const char* name = primitives->at(i).name.c_str(); //idk why it didnt work with [i] but why would strings in c++ ever miss out on a chance to make me miserable and confused
                 if (ImGui::Selectable(name, is_selected))
                     item_current_idx = i;
 
@@ -95,16 +109,16 @@ void SDFEntity::UpdateGUI()
 
         ImGui::TreePop();
     }
-    if (primitivesNames->size() > 0)
+    if (primitives->size() > 0)
     {
-        switch (nameToType->at(primitivesNames->at(item_current_idx)))
+        switch (primitives->at(item_current_idx).type)
         {
         case SDFType::Sphere:
             ShowSphereSettings(item_current_idx);
             break;
 
         case SDFType::Box:
-            ShowBoxSettings(item_current_idx); //METHOD NOT IMPLEMENTED YET
+            ShowBoxSettings(item_current_idx);
             break;
 
         default:
@@ -130,19 +144,27 @@ void SDFEntity::ShowSphereSettings(int selectedIndex)
 {
     ImGui::SeparatorText("Sphere Settings");
 
-    ImGui::SliderFloat3("Position", (float*)&psData.primitives[selectedIndex].Position, -100.0, 100.0);
+    //ImGui::SliderFloat3("Position", (float*)&psData.primitives[selectedIndex].Position, -100.0, 100.0);
 	
 
-    ImGui::SliderFloat("Radius", &psData.primitives[selectedIndex].Size, 0, 100);
+    //ImGui::SliderFloat("Radius", &psData.primitives[selectedIndex].Size, 0, 100);
 
-    
+	ImGui::SliderFloat3("Position", (float*)&primitives->at(item_current_idx).renderData.Position, -50.0, 50.0);
+
+
+	ImGui::SliderFloat("Radius", &primitives->at(item_current_idx).renderData.Size, 0, 100);
+
+
 }
 
 void SDFEntity::ShowBoxSettings(int selectedIndex)
 {
     ImGui::SeparatorText("Box Settings");
-    ImGui::SliderFloat3("Position", (float*)&psData.primitives[MAX_PRIMITIVES + selectedIndex].Position, -100.0, 100.0);
-    ImGui::SliderFloat3("Dimensions", (float*)&psData.primitives[MAX_PRIMITIVES + selectedIndex].Dimensions, -100.0, 100.0);
+    //ImGui::SliderFloat3("Position", (float*)&psData.primitives[MAX_PRIMITIVES + selectedIndex].Position, -100.0, 100.0);
+    //ImGui::SliderFloat3("Dimensions", (float*)&psData.primitives[MAX_PRIMITIVES + selectedIndex].Dimensions, -100.0, 100.0);
+    //
+    ImGui::SliderFloat3("Position", (float*)&primitives->at(item_current_idx).renderData.Position, -50.0, 50.0);
+    ImGui::SliderFloat3("Dimensions", (float*)&primitives->at(item_current_idx).renderData.Dimensions, -100.0, 100.0);
 
 }
 
@@ -184,7 +206,7 @@ void SDFEntity::DisplaySDFSettings()
         
   
 
-   return;
+    return;
 }
 
 //std::shared_ptr<RaymarchPSExternalData> SDFEntity::GetRayMarchPSData()
@@ -194,8 +216,56 @@ RaymarchPSExternalData* SDFEntity::GetRayMarchPSData()
     //psData->sphereCount = sphereCount;
     //psData->boxCount = START_BOXES + boxCount;
     //return psData;
+
+    //pack the render data array (lol move this sometime)
+
+    
+
+    int boxStartIdx = sphereCount - 1;
+    int addedSphereCount = 0;
+    int addedBoxCount = 0;
+    //int lastSphereIdx = sphereCount - 1;
+
+    for (int i = 0; i < primitives->size(); i++)
+    {
+        if (primitives->at(i).type == SDFType::Sphere)
+        {
+            psData.spherePrims[i] = primitives->at(i).renderData;
+            std::cout << "sphere at " << i << std::endl;
+            //addedSphereCount++;
+        }
+        //switch (primitives->at(i).type)
+        //{
+        //case SDFType::Sphere:
+        //    psData.primitives[addedSphereCount] = primitives->at(i).renderData;
+        //    std::cout << "sphere at " << addedSphereCount << std::endl;
+        //    addedSphereCount++;
+        //    break;
+        //case SDFType::Box:
+        //    psData.primitives[boxStartIdx + addedBoxCount] = primitives->at(i).renderData;
+        //    std::cout << "box at " << addedBoxCount + boxStartIdx << std::endl;
+        //    addedBoxCount++;
+        //    break;
+        //default:
+        //    break;
+        //}
+
+    }
+
+    for (int i = 0; i < primitives->size(); i++)
+    {
+        if (primitives->at(i).type == SDFType::Box)
+        {
+            psData.boxPrims[i] = primitives->at(i).renderData;
+            //std::cout << "box at " << boxStartIdx + i << std::endl;
+            //addedBoxCount++;
+        }
+    }
+
+
+
     psData.lightPosition = DirectX::XMFLOAT3A(lightPos);
     psData.sphereCount = sphereCount;
-    psData.boxCount = START_BOXES + boxCount;
+    psData.boxCount = boxCount;
     return &psData;
 }

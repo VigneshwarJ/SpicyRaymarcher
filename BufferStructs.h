@@ -47,7 +47,8 @@ struct RaymarchPSExternalData
 	int boxCount;
 	DirectX::XMFLOAT3 lightPosition;
 	int sphereCount;
-	SDFPrimRenderData primitives[MAX_SDF_COUNT];
+	SDFPrimRenderData spherePrims[MAX_SDF_COUNT];
+	SDFPrimRenderData boxPrims[MAX_SDF_COUNT];
 	SDFMaterial color[MAX_SDF_COUNT];
 
 };
