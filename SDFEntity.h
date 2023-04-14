@@ -36,7 +36,7 @@ struct PrimitiveData
 {
 	SDFType type;
 	std::string name;
-	SDFPrimRenderData renderData;
+	unsigned int idx;
 };
 
 
@@ -92,7 +92,7 @@ private:
 	////std::unique_ptr<std::vector<SDFPrimitive>> primitives;
 	//std::unique_ptr<std::vector<std::string>> primitivesNames = std::make_unique<std::vector<std::string>>();
 
-	std::unique_ptr<std::vector<PrimitiveData>> primitives = std::make_unique<std::vector<PrimitiveData>>();
+	std::vector<PrimitiveData> primitives;
 
 
 	//std::shared_ptr<RaymarchPSExternalData> psData = {}; //better, but wait until the rest of this is fixed
