@@ -100,7 +100,7 @@ float2 map(float3 marcherPosition)
 			float2(sphere(marcherPosition - spherePrims[i].Position, spherePrims[i].Size), spherePrims[i].MaterialType));
 	}
 
-	for (int i = MAX_PRIMITIVES; i < boxCount; i++)
+	for (int i = 0; i < boxCount; i++)
 	{
 		finalDistance = basicUnionWithColor(finalDistance,
 			float2(box(marcherPosition - boxPrims[i].Position, boxPrims[i].Dimensions), boxPrims[i].MaterialType));
@@ -162,12 +162,12 @@ float calculateAO(float3 pos, float3 nor)
 // is the material of the object hit.
 float2 castRay(float3 rayOrigin, float3 rayDirection)
 {
-	float tmin = 1.0;
+	float tmin = .50;
 	float tmax = 20.0;
 
 	float finalDistance = tmin;
 	float m = -1.0;
-	for (int i = 0; i < 64; i++)
+	for (int i = 0; i < 150; i++)
 	{
 		float precis = 0.0005 * finalDistance;
 		float2 res = map(rayOrigin + rayDirection * finalDistance);
