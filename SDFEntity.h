@@ -81,7 +81,7 @@ private:
 	unsigned int sphereCount = 0;
 	unsigned int boxCount = 0;
 	unsigned int materialCount = 1; //default material
-	float lightPos[3] = { 0.0, -10.0 , 0.0 };
+	float lightPos[3] = { 0.0, 10.0 , 0.0 };
 	UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;
 

@@ -89,8 +89,8 @@ float calculateLighting(float3 position, float3 normal) {
 
 float2 map(float3 marcherPosition)
 {
-	//float2 finalDistance = basicUnionWithColor(float2(10000,1),
-	//	float2(plane(marcherPosition),1.0));
+	//float2 finalDistance = basicUnionWithColor(float2(10000.0,1.0),
+	//	float2(plane(marcherPosition - float3(0,-5,0)),30));
 	//find the distance of the scene at this pixel
 
 	float2 finalDistance=(10000.0f,1);
@@ -175,7 +175,7 @@ float2 castRay(float3 rayOrigin, float3 rayDirection)
 		finalDistance += res.x;
 		m = res.y;
 	}
-
+	//if (m == 30) return (finalDistance, 30);
 	if (finalDistance > tmax) m = -1.0;
 	return float2(finalDistance, m);
 }
@@ -188,10 +188,10 @@ float4 main(VertexToPixel input) : SV_Target
 	float2 ratio = float2(ps.x / ps.y, 1);
 	input.uv *= ratio;
 	float2 screenPosition = (input.uv) - 0.5;
-
+	screenPosition.y =   0.5 - input.uv.y;
 	float3 rayDirection = normalize(input.ray);
 	 rayDirection = getRayDirection(screenPosition);
-
+	 //material[30].color = float4(1, 0, .5, 1);
 
 	float3 skyColor = float3(0.7, 0.9, 1.0) + rayDirection.y * 0.8;
 
@@ -210,6 +210,7 @@ float4 main(VertexToPixel input) : SV_Target
 	{
 		float3 normal = calculateNormals(marcherPosition);
 		float3 diffuseColor = material[finalDistance.y].color.xyz;
+
 		float3 ref = reflect(rayDirection, normal);
 
 		// lighting        
@@ -233,7 +234,7 @@ float4 main(VertexToPixel input) : SV_Target
 		//lin += 0.50 * dom * float3(0.40, 0.60, 1.00) * occ;
 		lin += 0.50 * bac * float3(0.25, 0.25, 0.25) * occ;
 		//lin += 0.25 * fre * float3(1.00, 1.00, 1.00) * occ;
-		//diffuseColor = diffuseColor * lin;
+		diffuseColor = diffuseColor * lin;
 		// gamma
 		diffuseColor = pow(diffuseColor, float3(0.4545,0.4545,.4545));
 
