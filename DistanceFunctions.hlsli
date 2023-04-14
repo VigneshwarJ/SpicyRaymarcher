@@ -27,3 +27,8 @@ float basicUnion(float distance1, float distance2)
 {
 	return min(distance1, distance2);
 }
+
+float2 basicUnionWithColor(float2 distance1, float2 distance2)
+{
+	return distance1.x < distance2.x ? distance1 : distance2;
+}
