@@ -18,7 +18,7 @@ public:
 	// Getters
 	DirectX::XMFLOAT4X4 GetView() { return viewMatrix; }
 	DirectX::XMFLOAT4X4 GetProjection() { return projMatrix; }
-	
+	void CalculateFrustumCorners();
 	//https://stackoverflow.com/questions/21467225/how-do-you-determine-the-view-up-vector
 
 	DirectX::XMVECTOR GetForward() const noexcept;
@@ -30,6 +30,7 @@ public:
 
 
 	Transform* GetTransform();
+	DirectX::XMFLOAT3 m_FrustumCorners[4];
 
 private:
 	// Camera matrices
@@ -39,7 +40,6 @@ private:
 	//XMVECTOR up;
 	float m_AspectRatio = 16 / 9.0f;
 	Transform transform;
-
 	float movementSpeed;
 	float mouseLookSpeed;
 };

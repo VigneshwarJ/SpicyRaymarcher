@@ -34,7 +34,10 @@ struct RaytracingSceneData
 struct RaymarchVSExternalData
 {
 	//UINT id;
-
+	DirectX::XMFLOAT4X4 view;
+	DirectX::XMFLOAT4X4 projection;
+	DirectX::XMFLOAT4X4 inverseViewProjection;
+	DirectX::XMFLOAT3 frustum[4];
 };
 struct RaymarchPSExternalData
 {

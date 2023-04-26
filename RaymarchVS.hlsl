@@ -1,10 +1,17 @@
-
+cbuffer perFrame : register (b0)
+{
+	matrix view;
+	matrix projection;
+	matrix invViewProj;
+	float3 frustum[3];
+};
 
 // Defines the output data of our vertex shader
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float2 uv           : TEXCOORD0;
+	float3 ray			: TEXCOORD1;
 };
 
 
@@ -41,7 +48,9 @@ VertexToPixel main(uint id : SV_VertexID)
 	output.position = float4(output.uv, 0, 1);
 	output.position.x = output.position.x * 2 - 1;
 	output.position.y = output.position.y * -2 + 1;
-
-
+	int index = (output.position.x / 2) + output.position.y;
+	float4 ray = float4(frustum[id],1);
+	output.ray = mul(invViewProj, ray).xyz;
+	//ray = mul(invViewProj, output.position);
 	return output;
 }

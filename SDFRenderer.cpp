@@ -110,11 +110,20 @@ void SDFRenderer::Render()
 			dx12HelperInst.GetCBVSRVDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 
-
+		
 
 		{
 			RaymarchVSExternalData externalData = {};
-
+			externalData.view = camera->GetView();
+			externalData.projection = camera->GetProjection();
+			DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&externalData.view);
+			externalData.frustum[0] = camera->m_FrustumCorners[0];
+			externalData.frustum[1] = camera->m_FrustumCorners[1];
+			externalData.frustum[2] = camera->m_FrustumCorners[2];
+			externalData.frustum[3] = camera->m_FrustumCorners[3];
+			//DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&externalData.projection);
+			//DirectX::XMMATRIX vp = DirectX::XMMatrixMultiply(v, p);
+			DirectX::XMStoreFloat4x4(&externalData.inverseViewProjection, XMMatrixInverse(0, v));
 			//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
