@@ -93,6 +93,12 @@ void Game::InitSDFRenderer()
 	sdfRenderer->Init(vsync, camera);
 }
 
+void Game::CreateSDFEntity()
+{
+	sdfEntities.push_back(std::make_shared<SDFEntity>(sdfEntities.size()));
+	selectedEntityIndex = sdfEntities.size()-1;
+}
+
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -116,8 +122,8 @@ void Game::UpdateGUI()
 	ImGui::NewFrame();
 
 	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
-	SDFEntity::GetSDFEntity()->DisplaySDFSettings();
-
+	//SDFEntity::GetSDFEntity()->DisplaySDFSettings();
+	SDFMainGUI();
 
 
 
@@ -126,6 +132,38 @@ void Game::UpdateGUI()
 	ImGui::End();
 
 
+}
+
+void Game::SDFMainGUI()
+{
+
+	if (ImGui::Button("AddEntity"))
+	{
+		CreateSDFEntity();
+	}
+	if (ImGui::BeginListBox("Entities"))
+	{
+		for (int i = 0; i < sdfEntities.size(); i++)
+		{
+			const bool is_selected = (selectedEntityIndex == i);
+			const char* name = sdfEntities.at(i)->GetName()->c_str(); 
+			if (ImGui::Selectable(name, is_selected))
+				selectedEntityIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndListBox();
+
+	}
+
+	ImGui::Separator();
+
+	if (sdfEntities.at(selectedEntityIndex))
+	{
+		sdfEntities.at(selectedEntityIndex)->UpdateGUI();
+	}
 }
 
 // --------------------------------------------------------

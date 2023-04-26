@@ -33,7 +33,6 @@ public:
 
 
 	//void UpdateImGui();
-	void UpdateGUI();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
@@ -45,6 +44,14 @@ private:
 	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
 	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
 	void InitSDFRenderer();
+
+	void CreateSDFEntity();
+
+
+	//ui functions
+	void UpdateGUI();
+	void SDFMainGUI();
+
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	//void CreateRootSigAndPipelineState();
@@ -80,6 +87,8 @@ private:
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;
+	std::vector<std::shared_ptr<SDFEntity>> sdfEntities;
+	int selectedEntityIndex;
 	
 };
 

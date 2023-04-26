@@ -15,6 +15,12 @@ static bool continuos_update = false;
 
 
 
+SDFEntity::SDFEntity(int nth)
+{
+    AddSphere();
+    name = "SDF number " + std::to_string(nth);
+}
+
 bool SDFEntity::CanAddPrimitive(int count)
 {
     if (count >= MAX_PRIMITIVES)
@@ -114,7 +120,7 @@ void SDFEntity::UpdateGUI()
         }
     }
     ImGui::Separator();
-    ImGui::ColorEdit3("Material color", uiSettings.color);
+    //ImGui::ColorEdit3("Material color", uiSettings.color);
 
     ImGui::Separator();
     if (ImGui::Button("CreateSphere"))

@@ -8,21 +8,21 @@
 #define START_BOXES MAX_PRIMITIVES
 
 
-struct UISettings
-{
-	UISettings()
-		//:spheres(sphere),
-		:size(5.0f)
-	{}
-	float size;
-	float position[3] = { 0.0, 0.0 , 7.0 };
-	//SDFSphere* spheres = nullptr;
-	unsigned int materialType = 0;
-
-
-	//materials
-	float color[4] = { 0.0, 0.0 , 1.0,1.0 };
-};
+//struct UISettings
+//{
+//	UISettings()
+//		//:spheres(sphere),
+//		:size(5.0f)
+//	{}
+//	float size;
+//	float position[3] = { 0.0, 0.0 , 7.0 };
+//	//SDFSphere* spheres = nullptr;
+//	unsigned int materialType = 0;
+//
+//
+//	//materials
+//	float color[4] = { 0.0, 0.0 , 1.0,1.0 };
+//};
 
 //multiple buttons for particular shapes
 //enum for shape types
@@ -43,12 +43,12 @@ struct PrimitiveData
 class SDFEntity
 {
 public:
-	//SDFEntity();
+	SDFEntity(int nth);
 
-	SDFEntity():uiSettings(){
+	//SDFEntity():uiSettings(){
 
-		psData.color[0] = SDFMaterial{ {1,1,1,1} };
-	}
+	//	psData.color[0] = SDFMaterial{ {1,1,1,1} };
+	//}
 
 	bool CanAddPrimitive(int count);
 
@@ -61,13 +61,13 @@ public:
 
 	void DisplaySDFSettings();
 
-	static SDFEntity* GetSDFEntity() {
-		if (!s_Entity)
-		{
-			s_Entity = std::make_unique<SDFEntity>();
-		}
-		return s_Entity.get();
-	}
+	//static SDFEntity* GetSDFEntity() {
+	//	if (!s_Entity)
+	//	{
+	//		s_Entity = std::make_unique<SDFEntity>();
+	//	}
+	//	return s_Entity.get();
+	//}
 
 	float* getLightPos()
 	{
@@ -75,14 +75,17 @@ public:
 	}
 	//std::shared_ptr<RaymarchPSExternalData> GetRayMarchPSData();
 	RaymarchPSExternalData* GetRayMarchPSData();
-
+	std::string* GetName() { return &name; };
 
 private:
+	std::string name;
+	Transform transform;
+
 	unsigned int sphereCount = 0;
 	unsigned int boxCount = 0;
 	unsigned int materialCount = 1; //default material
 	float lightPos[3] = { 0.0, 10.0 , 0.0 };
-	UISettings uiSettings;
+	//UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;
 
 	//I dont want to have the primitives hold the names themselves. it doesnt 
