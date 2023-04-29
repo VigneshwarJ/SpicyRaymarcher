@@ -90,7 +90,7 @@ void Game::Init()
 void Game::InitSDFRenderer()
 {
 	sdfRenderer = renderer; //this is lazy and bad im sorry
-	sdfRenderer->Init(vsync, camera);
+	sdfRenderer->Init(vsync, camera, *this);
 }
 
 void Game::CreateSDFEntity()

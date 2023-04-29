@@ -2,8 +2,10 @@
 #include <memory>
 #include <vector>
 #include <map>
-#include "BufferStructs.h"
 #include <string>
+#include "BufferStructs.h"
+#include "Transform.h"
+
 #define MAX_PRIMITIVES 50
 #define START_BOXES MAX_PRIMITIVES
 

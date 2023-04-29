@@ -36,6 +36,8 @@ public:
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
+	std::vector<std::shared_ptr<SDFEntity>> GetEntities() { return sdfEntities; }
+
 private:
 
 	// Should we use vsync to limit the frame rate?

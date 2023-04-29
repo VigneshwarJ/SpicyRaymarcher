@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
+void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera, Game game)
 {
 	this->vsync = vsync;
 	this->camera = camera;
@@ -131,35 +131,43 @@ void SDFRenderer::Render()
 		}
 		// Pixel shader data and cbuffer setup
 		{
-			 // TODO: should be made as member variable 
+			// TODO: should be made as member variable 
 
-			/*
-			TODO: Below should be moved inside Camera class
+		   /*
+		   TODO: Below should be moved inside Camera class
 
-			why?
-			*/
-			
-			auto entity = SDFEntity::GetSDFEntity();
-			//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
-			auto psData = entity->GetRayMarchPSData();
-			XMFLOAT3 pos = camera->GetTransform()->GetPosition();
-			psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
-			XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
-			XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
-			XMStoreFloat3(&(psData->cameraUp), camera->GetUp());
-			psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
+		   why?
+		   */
+
+			//there may be a better way to grab this but for now this avoids more refactoring
+			std::vector<std::shared_ptr<SDFEntity>> entities = game->GetEntities();
+
+			for (int i = 0; i < entities.size(); i++)
+			{
+				//auto entity = SDFEntity::GetSDFEntity();
+				//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
+				RaymarchPSExternalData* psData = entities.at(i)->GetRayMarchPSData();
+				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
+				psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
+				XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
+				XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
+				XMStoreFloat3(&(psData->cameraUp), camera->GetUp());
+				psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
 
 
-			//// Send this to a chunk of the constant buffer heap
-			//// and grab the GPU handle for it so we can set it for this draw
-			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
-				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-					(void*)(psData), sizeof(RaymarchPSExternalData));
-			//// Set this constant buffer handle
-			//// Note: This assumes that descriptor table 1 is the
-			//// place to put this particular descriptor. This
-			//// is based on how we set up our root signature.
-			commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+				//// Send this to a chunk of the constant buffer heap
+				//// and grab the GPU handle for it so we can set it for this draw
+				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+						(void*)(psData), sizeof(RaymarchPSExternalData));
+				//// Set this constant buffer handle
+				//// Note: This assumes that descriptor table 1 is the
+				//// place to put this particular descriptor. This
+				//// is based on how we set up our root signature.
+				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+
+
+			}
 		}
 
 
