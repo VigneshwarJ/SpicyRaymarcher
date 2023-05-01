@@ -90,13 +90,13 @@ void Game::Init()
 void Game::InitSDFRenderer()
 {
 	sdfRenderer = renderer; //this is lazy and bad im sorry
-	sdfRenderer->Init(vsync, camera, *this);
+	sdfRenderer->Init(vsync, camera);//, *this);
 }
 
 void Game::CreateSDFEntity()
 {
-	sdfEntities.push_back(std::make_shared<SDFEntity>(sdfEntities.size()));
-	selectedEntityIndex = sdfEntities.size()-1;
+	sdfEntities->push_back(std::make_shared<SDFEntity>(sdfEntities->size()));
+	selectedEntityIndex = sdfEntities->size()-1;
 }
 
 // --------------------------------------------------------
@@ -143,10 +143,10 @@ void Game::SDFMainGUI()
 	}
 	if (ImGui::BeginListBox("Entities"))
 	{
-		for (int i = 0; i < sdfEntities.size(); i++)
+		for (int i = 0; i < sdfEntities->size(); i++)
 		{
 			const bool is_selected = (selectedEntityIndex == i);
-			const char* name = sdfEntities.at(i)->GetName()->c_str(); 
+			const char* name = sdfEntities->at(i)->GetName()->c_str();
 			if (ImGui::Selectable(name, is_selected))
 				selectedEntityIndex = i;
 
@@ -160,9 +160,9 @@ void Game::SDFMainGUI()
 
 	ImGui::Separator();
 
-	if (sdfEntities.at(selectedEntityIndex))
+	if (sdfEntities->at(selectedEntityIndex))
 	{
-		sdfEntities.at(selectedEntityIndex)->UpdateGUI();
+		sdfEntities->at(selectedEntityIndex)->UpdateGUI();
 	}
 }
 
@@ -194,6 +194,7 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	// Should create a new entity for sdf structures.
 	sdfRenderer->Render();
+	//sdfRenderer->RenderEntity(sdfEntities);
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
 }

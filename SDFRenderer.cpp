@@ -10,11 +10,11 @@
 // Needed for a helper function to read compiled shader files from the hard drive
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
-#include "SDFEntity.h"
+//#include "SDFEntity.h"
 
 #include <iostream>
 
-void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera, Game game)
+void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera, std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> ent)//, Game game)
 {
 	this->vsync = vsync;
 	this->camera = camera;
@@ -140,13 +140,13 @@ void SDFRenderer::Render()
 		   */
 
 			//there may be a better way to grab this but for now this avoids more refactoring
-			std::vector<std::shared_ptr<SDFEntity>> entities = game->GetEntities();
+			//std::vector<std::shared_ptr<SDFEntity>> entities = game->GetEntities();
 
-			for (int i = 0; i < entities.size(); i++)
+			for (int i = 0; i < entities->size(); i++)
 			{
 				//auto entity = SDFEntity::GetSDFEntity();
 				//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
-				RaymarchPSExternalData* psData = entities.at(i)->GetRayMarchPSData();
+				RaymarchPSExternalData* psData = entities->at(i)->GetRayMarchPSData();
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
 				psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
 				XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
@@ -208,6 +208,12 @@ void SDFRenderer::Render()
 	}
 
 }
+
+//void SDFRenderer::RenderEntity(std::vector<std::shared_ptr<SDFEntity>> ent)
+//{
+//	entities = ent;
+//	Render();
+//}
 
 void SDFRenderer::createTriangleForScreenQuad()
 {

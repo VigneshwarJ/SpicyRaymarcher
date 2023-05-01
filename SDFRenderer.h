@@ -12,6 +12,7 @@
 
 #include "Camera.h"
 #include "GameEntity.h"
+#include "SDFEntity.h"
 #include "BufferStructs.h"
 
 class Game;
@@ -36,13 +37,25 @@ public:
 	void Init(
 		bool vsync,
 		std::shared_ptr<Camera> camera, 
-		Game game
+		std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> ent
 	);
 
 	~SDFRenderer();
 
-	//going to have this take in some variables Just for Now, because the need to do this will probably change as the project evolves
+	/* This is kind of a hack. 
+	* I know it would be better to just have the one Render(), but since that overrides the one from RenderCore, that means
+	* it would need to take in SDFEntity list. Which kind of defeats the purpose of separating this class with RenderCore.
+	* 
+	* So for now, this will simply set the entities vector and then just call Render()
+	* 
+	* In the future if we have time it would be good to have a base Entity class so we don't have to force RenderCore to 
+	* accept a specific type of entity. Or, we could pass in a proper ptr/shared_ptr in Init, so it can just keep referencing the 
+	* same vector as it gets updated in Game. But i just don't have it in me to mess with that right now
+	*/
+	//void RenderEntity(std::vector<std::shared_ptr<SDFEntity>> entities);
+
 	void Render() override;
+
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() { return pipelineState; };
 
@@ -55,7 +68,7 @@ private:
 	//from game, not in DXCore at all
 	bool vsync;
 	std::shared_ptr<Camera> camera;
-	Game* game;
+	//Game* game;
 	//definitely would not use traditional entities, but maybe would add another entity type later
 	//same with materials, lights, etc
 
@@ -70,6 +83,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW vbView;
 
+
+	std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> entities;
 
 	void CreateRootSigAndPipelineState();
 	//I would like to split up the above function into these somehow, but there may not be a way to do that without it being a pain. Let's just get this up and running for now

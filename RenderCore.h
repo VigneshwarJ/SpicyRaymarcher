@@ -41,7 +41,7 @@ public:
 
 
 	//this is for the SDFRenderer Init, which i would like to get rid of but im big tired tbh
-	virtual void Init(bool vsync, std::shared_ptr<Camera> camera, Game game) = 0;
+	virtual void Init(bool vsync, std::shared_ptr<Camera> camera) = 0;//, Game game) = 0; //passing in Game here seems to just confuse the kb state
 
 	virtual void Render() = 0;
 

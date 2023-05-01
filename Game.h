@@ -36,7 +36,7 @@ public:
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
-	std::vector<std::shared_ptr<SDFEntity>> GetEntities() { return sdfEntities; }
+	//std::vector<std::shared_ptr<SDFEntity>> GetEntities() { return sdfEntities; }
 
 private:
 
@@ -89,7 +89,7 @@ private:
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;
-	std::vector<std::shared_ptr<SDFEntity>> sdfEntities;
+	std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> sdfEntities;
 	int selectedEntityIndex;
 	
 };
