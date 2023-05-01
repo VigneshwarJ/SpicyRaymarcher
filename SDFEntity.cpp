@@ -19,6 +19,7 @@ SDFEntity::SDFEntity(int nth)
 {
     AddSphere();
     name = "SDF number " + std::to_string(nth);
+    psData.color[0] = SDFMaterial{ {1,1,1,1} };
 }
 
 bool SDFEntity::CanAddPrimitive(int count)

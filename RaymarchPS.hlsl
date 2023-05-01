@@ -216,8 +216,9 @@ float4 main(VertexToPixel input) : SV_Target
 		// lighting        
 		float occ = calculateAO(marcherPosition, normal); // ambient occlusion
 		float3 lig = normalize(lightPosition- marcherPosition); // sunlight
+		//float3 lig = calculateLighting(marcherPosition, normal); // sunlight
 		float amb = clamp(0.5 + 0.5 * normal.y, 0.0, 1.0); // ambient light
-		float dif = clamp(dot(normal, lig), 0.0, 1.0); // diffuse reflection from sunlight
+		float dif = clamp(dot(normal, lig), 0.0, 10.0); // diffuse reflection from sunlight
 
 		// backlight
 		float bac = clamp(dot(normal, normalize(float3(lig.x, 0.0, lig.z))), 0.0, 1.0) * clamp(1.0 - marcherPosition.y, 0.0, 1.0);
