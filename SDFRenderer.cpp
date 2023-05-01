@@ -146,40 +146,32 @@ void SDFRenderer::Render()
 			{
 				RaymarchPSExternalData* psData;// = {};
 				psData = entities->at(0).GetRayMarchPSData();
-				//for (int i = 0; i < entities->size(); i++)
-				//{
-				//	//auto entity = SDFEntity::GetSDFEntity();
-				//	//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
-				//	//psData = entities->at(i).GetRayMarchPSData();
-				//	//if (i > 0)
-				//	//{
-				//	//	psData
-				//	//}
+				for (int i = 1; i < entities->size(); i++)
+				{
+					//use the existing psData counts to find where it should start filling the array from
+					//then fill the array by looping through the psData arrays from that point
 
-				//	//use the existing psData counts to find where it should start filling the array from
-				//	//then fill the array by looping through the psData arrays from that point
+					RaymarchPSExternalData* thisEntData = entities->at(i).GetRayMarchPSData();
 
-				//	//PerEntityData* thisEnt = entities->at(i).GetPerEntityData();
+					//boxes
+					int lastFilledIndex = psData->boxCount;
 
-				//	////boxes
-				//	//int lastFilledIndex = psData->boxCount;
+					for (int i = 0; i < thisEntData->boxCount; i++)
+					{
+						psData->boxPrims[psData->boxCount + i] = thisEntData->boxPrims[i];
+					}
 
-				//	//for (int i = 0; i < thisEnt->boxCount; i++)
-				//	//{
-				//	//	psData->boxPrims[psData->boxCount + i] = thisEnt->boxPrims[i];
-				//	//}
+					psData->boxCount += thisEntData->boxCount;
 
-				//	//psData->boxCount += thisEnt->boxCount;
+					//spheres
+					lastFilledIndex = psData->sphereCount;
 
-				//	////spheres
-				//	//lastFilledIndex = psData->sphereCount;
-
-				//	//for (int i = 0; i < thisEnt->sphereCount; i++)
-				//	//{
-				//	//	psData->spherePrims[psData->sphereCount + i] = thisEnt->spherePrims[i];
-				//	//}
-				//	//psData->sphereCount += thisEnt->sphereCount;
-				//}
+					for (int i = 0; i < thisEntData->sphereCount; i++)
+					{
+						psData->spherePrims[psData->sphereCount + i] = thisEntData->spherePrims[i];
+					}
+					psData->sphereCount += thisEntData->sphereCount;
+				}
 
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
 				psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);

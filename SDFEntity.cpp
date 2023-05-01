@@ -105,7 +105,7 @@ void SDFEntity::UpdateGUI()
 
         ImGui::TreePop();
     }
-    if (primitives.size() > 0)
+    if (primitives.size() > 0 && item_current_idx < primitives.size())
     {
         switch (primitives.at(item_current_idx).type)
         {
