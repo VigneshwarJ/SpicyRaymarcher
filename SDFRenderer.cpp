@@ -10,13 +10,16 @@
 // Needed for a helper function to read compiled shader files from the hard drive
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
-#include "SDFEntity.h"
+//#include "SDFEntity.h"
 
+#include <iostream>
 
-void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera)
+void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera, std::shared_ptr<std::vector<SDFEntity>> entitiesRef)//, Game game)
 {
 	this->vsync = vsync;
 	this->camera = camera;
+
+	this->entities = entitiesRef;
 
 	CreateRootSigAndPipelineState();
 
@@ -109,11 +112,20 @@ void SDFRenderer::Render()
 			dx12HelperInst.GetCBVSRVDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
 
-
+		
 
 		{
 			RaymarchVSExternalData externalData = {};
-
+			externalData.view = camera->GetView();
+			externalData.projection = camera->GetProjection();
+			DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&externalData.view);
+			externalData.frustum[0] = camera->m_FrustumCorners[0];
+			externalData.frustum[1] = camera->m_FrustumCorners[1];
+			externalData.frustum[2] = camera->m_FrustumCorners[2];
+			externalData.frustum[3] = camera->m_FrustumCorners[3];
+			//DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&externalData.projection);
+			//DirectX::XMMATRIX vp = DirectX::XMMatrixMultiply(v, p);
+			DirectX::XMStoreFloat4x4(&externalData.inverseViewProjection, XMMatrixInverse(0, v));
 			//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
 
@@ -121,32 +133,67 @@ void SDFRenderer::Render()
 		}
 		// Pixel shader data and cbuffer setup
 		{
-			 // TODO: should be made as member variable 
+			// TODO: should be made as member variable 
 
-			/*
-			TODO: Below should be moved inside Camera class
-			*/
-			
-			auto entity = SDFEntity::GetSDFEntity();
-			auto psData = entity->GetRayMarchPSData();
-			XMFLOAT3 pos = camera->GetTransform()->GetPosition();
-			psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
-			XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
-			XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
-			XMStoreFloat3(&(psData->cameraUp), camera->getUp());
-			psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
+		   /*
+		   TODO: Below should be moved inside Camera class
+
+		   why?
+		   */
+
+			//this is like if TroomTroom made a video about writing code lol
+			if (entities->size() > 0)//only do this if there is at least one entity
+			{
+				RaymarchPSExternalData* psData;// = {};
+				psData = entities->at(0).GetRayMarchPSData();
+				for (int i = 1; i < entities->size(); i++)
+				{
+					//use the existing psData counts to find where it should start filling the array from
+					//then fill the array by looping through the psData arrays from that point
+
+					RaymarchPSExternalData* thisEntData = entities->at(i).GetRayMarchPSData();
+
+					//boxes
+					int lastFilledIndex = psData->boxCount;
+
+					for (int i = 0; i < thisEntData->boxCount; i++)
+					{
+						psData->boxPrims[psData->boxCount + i] = thisEntData->boxPrims[i];
+					}
+
+					psData->boxCount += thisEntData->boxCount;
+
+					//spheres
+					lastFilledIndex = psData->sphereCount;
+
+					for (int i = 0; i < thisEntData->sphereCount; i++)
+					{
+						psData->spherePrims[psData->sphereCount + i] = thisEntData->spherePrims[i];
+					}
+					psData->sphereCount += thisEntData->sphereCount;
+				}
+
+				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
+				psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
+				XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
+				XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
+				XMStoreFloat3(&(psData->cameraUp), camera->GetUp());
+				psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
 
 
-			//// Send this to a chunk of the constant buffer heap
-			//// and grab the GPU handle for it so we can set it for this draw
-			D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
-				dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-					(void*)(psData), sizeof(RaymarchPSExternalData));
-			//// Set this constant buffer handle
-			//// Note: This assumes that descriptor table 1 is the
-			//// place to put this particular descriptor. This
-			//// is based on how we set up our root signature.
-			commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+				//// Send this to a chunk of the constant buffer heap
+				//// and grab the GPU handle for it so we can set it for this draw
+				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
+					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
+						(void*)(psData), sizeof(RaymarchPSExternalData));
+				//// Set this constant buffer handle
+				//// Note: This assumes that descriptor table 1 is the
+				//// place to put this particular descriptor. This
+				//// is based on how we set up our root signature.
+				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
+			}
+
+
 		}
 
 
@@ -187,6 +234,12 @@ void SDFRenderer::Render()
 	}
 
 }
+
+//void SDFRenderer::RenderEntity(std::vector<std::shared_ptr<SDFEntity>> ent)
+//{
+//	entities = ent;
+//	Render();
+//}
 
 void SDFRenderer::createTriangleForScreenQuad()
 {

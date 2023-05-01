@@ -15,6 +15,7 @@
 #include "SDFEntity.h"
 
 #include "Utils.h"
+#include "UIManager.h"
 
 class Game 
 	: public DXCore
@@ -29,10 +30,13 @@ public:
 	// will be called automatically
 	void Init();
 	void OnResize();
-	void UpdateImGui();
-	void UpdateGUI();
+
+
+	//void UpdateImGui();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
+
+	//std::vector<std::shared_ptr<SDFEntity>> GetEntities() { return sdfEntities; }
 
 private:
 
@@ -42,6 +46,14 @@ private:
 	//this entire function is basically just to have One place to set up the hacked together SDFRenderer. 
 	//It may become obsolete later, or it may just get cleaned up later along with an improved renderer
 	void InitSDFRenderer();
+
+	void CreateSDFEntity();
+
+
+	//ui functions
+	void UpdateGUI();
+	void SDFMainGUI();
+
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	//void CreateRootSigAndPipelineState();
@@ -71,12 +83,14 @@ private:
 	std::vector<Light> lights;
 	int lightCount;
 	float color[4]; 
-	float sphereSize; 
+	float size; 
 	float lightPos[3]; 
-	float spherePos[3]; 
+	float position[3]; 
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;
+	std::shared_ptr<std::vector<SDFEntity>> sdfEntities;
+	int selectedEntityIndex;
 	
 };
 

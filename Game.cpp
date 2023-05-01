@@ -34,9 +34,9 @@ Game::Game(HINSTANCE hInstance)
 		true),			   // Show extra stats (fps) in title bar?
 	vsync(false),
 	color{ 1.0f,1.0f,1.0f,1.0f },
-sphereSize(5.0f),
+size(5.0f),
 lightPos{ 0.0, -10.0 , 0.0 },
-spherePos { 0.0, 0.0 , 7.0 }
+position { 0.0, 0.0 , 7.0 }
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -79,6 +79,7 @@ void Game::Init()
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
 
+	sdfEntities = std::make_shared<std::vector<SDFEntity>>();
 	InitSDFRenderer();
 
 	// I put this in the sdfrenderer init method for now
@@ -89,8 +90,16 @@ void Game::Init()
 
 void Game::InitSDFRenderer()
 {
+	//sdfEntities->
+	//CreateSDFEntity();
 	sdfRenderer = renderer; //this is lazy and bad im sorry
-	sdfRenderer->Init(vsync, camera);
+	sdfRenderer->Init(vsync, camera, sdfEntities);//, *this);
+}
+
+void Game::CreateSDFEntity()
+{
+	sdfEntities->push_back(SDFEntity(sdfEntities->size()));
+	selectedEntityIndex = sdfEntities->size()-1;
 }
 
 // --------------------------------------------------------
@@ -115,9 +124,9 @@ void Game::UpdateGUI()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
-	SDFEntity::GetSDFEntity()->DisplaySDFSettings();
-
+	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);  // Create a window with a name and append into it.
+	//SDFEntity::GetSDFEntity()->DisplaySDFSettings();
+	SDFMainGUI();
 
 
 
@@ -126,6 +135,38 @@ void Game::UpdateGUI()
 	ImGui::End();
 
 
+}
+
+void Game::SDFMainGUI()
+{
+
+	if (ImGui::Button("AddEntity"))
+	{
+		CreateSDFEntity();
+	}
+	if (ImGui::BeginListBox("Entities"))
+	{
+		for (int i = 0; i < sdfEntities->size(); i++)
+		{
+			const bool is_selected = (selectedEntityIndex == i);
+			const char* name = sdfEntities->at(i).GetName()->c_str();
+			if (ImGui::Selectable(name, is_selected))
+				selectedEntityIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndListBox();
+
+	}
+
+	ImGui::Separator();
+
+	if (sdfEntities->size() > selectedEntityIndex)
+	{
+		sdfEntities->at(selectedEntityIndex).UpdateGUI();
+	}
 }
 
 // --------------------------------------------------------
@@ -142,6 +183,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 
 	UpdateGUI();
+	//UIManager::UIUpdate();
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -155,6 +197,7 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	// Should create a new entity for sdf structures.
 	sdfRenderer->Render();
+	//sdfRenderer->RenderEntity(sdfEntities);
 	DX12Helper& dx12HelperInst = DX12Helper::GetInstance();
 
 }

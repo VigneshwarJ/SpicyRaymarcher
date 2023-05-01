@@ -13,6 +13,7 @@ Camera::Camera(float x, float y, float z, float moveSpeed, float mouseLookSpeed,
 	transform.SetRotation(0 ,-3.15 ,0);
 	UpdateViewMatrix();
 	UpdateProjectionMatrix(aspectRatio);
+	CalculateFrustumCorners();
 }
 
 // Nothing to really do
@@ -85,7 +86,7 @@ DirectX::XMVECTOR Camera::GetDirection()  noexcept
 DirectX::XMVECTOR Camera::GetForward() const noexcept
 {
 	return XMVector3Cross(GetRight(),
-		getUp());
+		GetUp());
 }
 DirectX::XMVECTOR Camera::GetRight() const noexcept
 {
@@ -94,7 +95,7 @@ DirectX::XMVECTOR Camera::GetRight() const noexcept
 		direction);
 }
 
-DirectX::XMVECTOR Camera::getUp() const noexcept
+DirectX::XMVECTOR Camera::GetUp() const noexcept
 {
 	return XMVector3Cross(direction,
 		GetRight());
@@ -126,6 +127,25 @@ void Camera::UpdateProjectionMatrix(float aspectRatio)
 		0.01f,				// Near clip plane distance
 		100.0f);			// Far clip plane distance
 	XMStoreFloat4x4(&projMatrix, P);
+}
+
+void Camera::CalculateFrustumCorners()
+{
+	float camFov = 0.25f * XM_PI;
+	//float camAspect = cam.aspect;
+
+	float fovWHalf = camFov * 0.5f;
+
+	float tan_fov = tan(fovWHalf);
+
+	XMFLOAT3 toRight = XMFLOAT3( tan_fov * m_AspectRatio,0,0);
+	XMFLOAT3 toTop = XMFLOAT3(0, tan_fov,0);
+
+	m_FrustumCorners[0] = XMFLOAT3(-tan_fov * m_AspectRatio, tan_fov, -1) ;
+	m_FrustumCorners[1] = XMFLOAT3(tan_fov * m_AspectRatio, tan_fov, -1);
+	m_FrustumCorners[2] = XMFLOAT3(tan_fov * m_AspectRatio, -tan_fov, -1);
+	m_FrustumCorners[3] = XMFLOAT3(-tan_fov * m_AspectRatio, -tan_fov, -1);
+
 }
 
 Transform* Camera::GetTransform()

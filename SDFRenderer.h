@@ -12,22 +12,19 @@
 
 #include "Camera.h"
 #include "GameEntity.h"
+#include "SDFEntity.h"
 #include "BufferStructs.h"
 
-class SDFRenderer //for now, this class is being declared as a friend of DXCore so that we can access the private variables. In the future I want to completely remove the need for Game to inherit from DXCore because this is tiresome
-	: public RenderCore //i dont know if this is a good idea yet but sure lets go with this for now
-{ //Probably *not* going to work to inherit from dxcore. remember how the asset manager was a pain this way? Probably going to have to do something like that with shaders being initialized in game and then sent over here. ugh
-	//other option is to pull out stuff that this needs into its own singleton? that sounds like it could break a lot of stuff though
+class Game;
 
+class SDFRenderer 
+	: public RenderCore 
+{
 	/*
 	* Need to:
 	*	load shaders
 	*	--i think just load the shaders in game and pass them here tbh.
 	*	set up input layout, the variables that the sdf shaders will need
-	*	
-	*	set up root signature - which describes the pipeline (buffers, etc)
-	*	
-	*	set up pipeline state!!!
 	* 
 	*	set up PostResize here?
 	* 
@@ -39,13 +36,26 @@ public:
 	
 	void Init(
 		bool vsync,
-		std::shared_ptr<Camera> camera
+		std::shared_ptr<Camera> camera, 
+		std::shared_ptr<std::vector<SDFEntity>> entitiesRef
 	);
 
 	~SDFRenderer();
 
-	//going to have this take in some variables Just for Now, because the need to do this will probably change as the project evolves
+	/* This is kind of a hack. 
+	* I know it would be better to just have the one Render(), but since that overrides the one from RenderCore, that means
+	* it would need to take in SDFEntity list. Which kind of defeats the purpose of separating this class with RenderCore.
+	* 
+	* So for now, this will simply set the entities vector and then just call Render()
+	* 
+	* In the future if we have time it would be good to have a base Entity class so we don't have to force RenderCore to 
+	* accept a specific type of entity. Or, we could pass in a proper ptr/shared_ptr in Init, so it can just keep referencing the 
+	* same vector as it gets updated in Game. But i just don't have it in me to mess with that right now
+	*/
+	//void RenderEntity(std::vector<std::shared_ptr<SDFEntity>> entities);
+
 	void Render() override;
+
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() { return pipelineState; };
 
@@ -58,7 +68,7 @@ private:
 	//from game, not in DXCore at all
 	bool vsync;
 	std::shared_ptr<Camera> camera;
-	
+	//Game* game;
 	//definitely would not use traditional entities, but maybe would add another entity type later
 	//same with materials, lights, etc
 
@@ -72,6 +82,9 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW vbView;
+
+
+	std::shared_ptr<std::vector<SDFEntity>> entities;
 
 	void CreateRootSigAndPipelineState();
 	//I would like to split up the above function into these somehow, but there may not be a way to do that without it being a pain. Let's just get this up and running for now

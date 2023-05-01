@@ -34,7 +34,10 @@ struct RaytracingSceneData
 struct RaymarchVSExternalData
 {
 	//UINT id;
-
+	DirectX::XMFLOAT4X4 view;
+	DirectX::XMFLOAT4X4 projection;
+	DirectX::XMFLOAT4X4 inverseViewProjection;
+	DirectX::XMFLOAT3 frustum[4];
 };
 struct RaymarchPSExternalData
 {
@@ -43,9 +46,12 @@ struct RaymarchPSExternalData
 	DirectX::XMFLOAT3A cameraForward;
 	DirectX::XMFLOAT3A cameraRight;
 	DirectX::XMFLOAT3A cameraUp;
-	DirectX::XMFLOAT3A bgColor;
+	DirectX::XMFLOAT3 bgColor;
+	int boxCount;
 	DirectX::XMFLOAT3 lightPosition;
 	int sphereCount;
-	SDFSphere spheres[MAX_SDF_COUNT];
+	SDFPrimRenderData spherePrims[MAX_SDF_COUNT];
+	SDFPrimRenderData boxPrims[MAX_SDF_COUNT];
+	SDFMaterial color[MAX_SDF_COUNT];
 
 };

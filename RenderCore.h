@@ -12,10 +12,15 @@
 #include "Camera.h"
 //#include "GameEntity.h"
 class GameEntity;
+class Game;
 #include "Mesh.h"
 #include "Material.h"
 #include "BufferStructs.h"
 #include "Lights.h"
+
+
+#include "SDFEntity.h"
+//#include "Game.h"
 
 /// <summary>
 /// The base class for rendering - here we are setting up the different things that DX12 needs to draw
@@ -39,15 +44,12 @@ public:
 
 
 	//this is for the SDFRenderer Init, which i would like to get rid of but im big tired tbh
-	virtual void Init(bool vsync, std::shared_ptr<Camera> camera) = 0;
+	virtual void Init(bool vsync, std::shared_ptr<Camera> camera,
+		std::shared_ptr<std::vector<SDFEntity>> ent) = 0;//, Game game) = 0; //passing in Game here seems to just confuse the kb state
 
 	virtual void Render() = 0;
 
 	virtual Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() = 0;
-
-	//make the frame-by-frame rendering functions pure virtual?
-	
-	//getter for the feature level? that feels like a lazy fix to still needing it in core but eh
 
 	//getter for IsInitialized - check if device exists
 	//that was the plan but enough stuff outside this class (in both game and dxcore) that its most practical right now to just have a getter for the device
