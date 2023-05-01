@@ -79,6 +79,7 @@ void Game::Init()
 		1.0f,		// Mouse look
 		this->width / (float)this->height); // Aspect ratio
 
+	sdfEntities = std::make_shared<std::vector<SDFEntity>>();
 	InitSDFRenderer();
 
 	// I put this in the sdfrenderer init method for now
@@ -89,13 +90,15 @@ void Game::Init()
 
 void Game::InitSDFRenderer()
 {
+	//sdfEntities->
+	//CreateSDFEntity();
 	sdfRenderer = renderer; //this is lazy and bad im sorry
-	sdfRenderer->Init(vsync, camera);//, *this);
+	sdfRenderer->Init(vsync, camera, sdfEntities);//, *this);
 }
 
 void Game::CreateSDFEntity()
 {
-	sdfEntities->push_back(std::make_shared<SDFEntity>(sdfEntities->size()));
+	sdfEntities->push_back(SDFEntity(sdfEntities->size()));
 	selectedEntityIndex = sdfEntities->size()-1;
 }
 
@@ -121,7 +124,7 @@ void Game::UpdateGUI()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
+	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);  // Create a window with a name and append into it.
 	//SDFEntity::GetSDFEntity()->DisplaySDFSettings();
 	SDFMainGUI();
 
@@ -146,7 +149,7 @@ void Game::SDFMainGUI()
 		for (int i = 0; i < sdfEntities->size(); i++)
 		{
 			const bool is_selected = (selectedEntityIndex == i);
-			const char* name = sdfEntities->at(i)->GetName()->c_str();
+			const char* name = sdfEntities->at(i).GetName()->c_str();
 			if (ImGui::Selectable(name, is_selected))
 				selectedEntityIndex = i;
 
@@ -160,9 +163,9 @@ void Game::SDFMainGUI()
 
 	ImGui::Separator();
 
-	if (sdfEntities->at(selectedEntityIndex))
+	if (sdfEntities->size() > selectedEntityIndex)
 	{
-		sdfEntities->at(selectedEntityIndex)->UpdateGUI();
+		sdfEntities->at(selectedEntityIndex).UpdateGUI();
 	}
 }
 
@@ -179,8 +182,8 @@ void Game::Update(float deltaTime, float totalTime)
 	//}
 
 
-	//UpdateGUI();
-	UIManager::UIUpdate();
+	UpdateGUI();
+	//UIManager::UIUpdate();
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))

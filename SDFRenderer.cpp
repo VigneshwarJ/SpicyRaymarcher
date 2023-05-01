@@ -14,10 +14,12 @@
 
 #include <iostream>
 
-void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera, std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> ent)//, Game game)
+void SDFRenderer::Init(bool vsync, std::shared_ptr<Camera> camera, std::shared_ptr<std::vector<SDFEntity>> entitiesRef)//, Game game)
 {
 	this->vsync = vsync;
 	this->camera = camera;
+
+	this->entities = entitiesRef;
 
 	CreateRootSigAndPipelineState();
 
@@ -139,14 +141,46 @@ void SDFRenderer::Render()
 		   why?
 		   */
 
-			//there may be a better way to grab this but for now this avoids more refactoring
-			//std::vector<std::shared_ptr<SDFEntity>> entities = game->GetEntities();
-
-			for (int i = 0; i < entities->size(); i++)
+			//this is like if TroomTroom made a video about writing code lol
+			if (entities->size() > 0)//only do this if there is at least one entity
 			{
-				//auto entity = SDFEntity::GetSDFEntity();
-				//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
-				RaymarchPSExternalData* psData = entities->at(i)->GetRayMarchPSData();
+				RaymarchPSExternalData* psData;// = {};
+				psData = entities->at(0).GetRayMarchPSData();
+				//for (int i = 0; i < entities->size(); i++)
+				//{
+				//	//auto entity = SDFEntity::GetSDFEntity();
+				//	//std::shared_ptr<RaymarchPSExternalData> psData = entity->GetRayMarchPSData();
+				//	//psData = entities->at(i).GetRayMarchPSData();
+				//	//if (i > 0)
+				//	//{
+				//	//	psData
+				//	//}
+
+				//	//use the existing psData counts to find where it should start filling the array from
+				//	//then fill the array by looping through the psData arrays from that point
+
+				//	//PerEntityData* thisEnt = entities->at(i).GetPerEntityData();
+
+				//	////boxes
+				//	//int lastFilledIndex = psData->boxCount;
+
+				//	//for (int i = 0; i < thisEnt->boxCount; i++)
+				//	//{
+				//	//	psData->boxPrims[psData->boxCount + i] = thisEnt->boxPrims[i];
+				//	//}
+
+				//	//psData->boxCount += thisEnt->boxCount;
+
+				//	////spheres
+				//	//lastFilledIndex = psData->sphereCount;
+
+				//	//for (int i = 0; i < thisEnt->sphereCount; i++)
+				//	//{
+				//	//	psData->spherePrims[psData->sphereCount + i] = thisEnt->spherePrims[i];
+				//	//}
+				//	//psData->sphereCount += thisEnt->sphereCount;
+				//}
+
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
 				psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
 				XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
@@ -165,9 +199,9 @@ void SDFRenderer::Render()
 				//// place to put this particular descriptor. This
 				//// is based on how we set up our root signature.
 				commandList->SetGraphicsRootDescriptorTable(1, cbHandlePS);
-
-
 			}
+
+
 		}
 
 

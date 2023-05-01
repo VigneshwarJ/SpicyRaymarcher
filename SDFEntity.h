@@ -41,6 +41,13 @@ struct PrimitiveData
 	unsigned int idx;
 };
 
+struct PerEntityData
+{
+	int boxCount;
+	int sphereCount;
+	SDFPrimRenderData spherePrims[MAX_SDF_COUNT];
+	SDFPrimRenderData boxPrims[MAX_SDF_COUNT];
+};
 
 class SDFEntity
 {
@@ -77,6 +84,7 @@ public:
 	}
 	//std::shared_ptr<RaymarchPSExternalData> GetRayMarchPSData();
 	RaymarchPSExternalData* GetRayMarchPSData();
+	PerEntityData* GetPerEntityData() { return &thisEntData; }
 	std::string* GetName() { return &name; };
 
 private:
@@ -102,6 +110,8 @@ private:
 
 	//std::shared_ptr<RaymarchPSExternalData> psData = {}; //better, but wait until the rest of this is fixed
 	RaymarchPSExternalData psData = {};
+
+	PerEntityData thisEntData = {};
 };
 
 

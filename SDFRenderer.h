@@ -37,7 +37,7 @@ public:
 	void Init(
 		bool vsync,
 		std::shared_ptr<Camera> camera, 
-		std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> ent
+		std::shared_ptr<std::vector<SDFEntity>> entitiesRef
 	);
 
 	~SDFRenderer();
@@ -84,7 +84,7 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW vbView;
 
 
-	std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> entities;
+	std::shared_ptr<std::vector<SDFEntity>> entities;
 
 	void CreateRootSigAndPipelineState();
 	//I would like to split up the above function into these somehow, but there may not be a way to do that without it being a pain. Let's just get this up and running for now

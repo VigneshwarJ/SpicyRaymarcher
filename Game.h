@@ -89,7 +89,7 @@ private:
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;
-	std::shared_ptr<std::vector<std::shared_ptr<SDFEntity>>> sdfEntities;
+	std::shared_ptr<std::vector<SDFEntity>> sdfEntities;
 	int selectedEntityIndex;
 	
 };
