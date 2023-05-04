@@ -155,6 +155,15 @@ void SDFRenderer::Render()
 						psData->spherePrims[psData->sphereCount + i] = thisEntData->spherePrims[i];
 					}
 					psData->sphereCount += thisEntData->sphereCount;
+
+					//torus
+					lastFilledIndex = psData->torusCount;
+
+					for (int i = 0; i < thisEntData->torusCount; i++)
+					{
+						psData->torusPrims[psData->torusCount + i] = thisEntData->torusPrims[i];
+					}
+					psData->torusCount += thisEntData->torusCount;
 				}
 
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();

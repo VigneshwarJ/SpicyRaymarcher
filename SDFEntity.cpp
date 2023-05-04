@@ -195,7 +195,7 @@ void SDFEntity::ShowTorusSettings(int selectedIndex)
     ImGui::SliderFloat3("Position", (float*)&psData.torusPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     ImGui::SliderFloat("Large Radius", &psData.torusPrims[primitives[selectedIndex].idx].Radius, 0, 100);
-    ImGui::SliderFloat("Small Radius", &psData.torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 100);
+    ImGui::SliderFloat("Small Radius", &psData.torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 10);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
 
 }

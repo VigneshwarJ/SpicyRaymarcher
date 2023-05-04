@@ -11,6 +11,8 @@ struct SDFPrimitive
     float smallRadius; //for torus, Radius will be the entire torus radius and smallRadius will be the thickness
 
 
+    float3 padding;
+
 };
 
 float sphere(float3 position, float radius)

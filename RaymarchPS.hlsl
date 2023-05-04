@@ -45,6 +45,7 @@ cbuffer ExternalData : register(b0)
 	float3 cameraForward;
 	float3 cameraRight;
 	float3 cameraUp;
+
 	float3 bgColor; // bg color not working
 	int boxCount;
 	float3 lightPosition;
@@ -56,10 +57,10 @@ cbuffer ExternalData : register(b0)
 	SDFPrimitive spherePrims[MAX_COUNT];
 	SDFPrimitive boxPrims[MAX_COUNT];
 	SDFPrimitive torusPrims[MAX_COUNT];
-	SDFPrimitive roundBoxPrims[MAX_COUNT];
-	SDFPrimitive cylinderPrims[MAX_COUNT];
-	SDFPrimitive conePrims[MAX_COUNT];
 	Material material[MAX_COUNT];
+	//SDFPrimitive roundBoxPrims[MAX_COUNT];
+	//SDFPrimitive cylinderPrims[MAX_COUNT];
+	//SDFPrimitive conePrims[MAX_COUNT];
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
