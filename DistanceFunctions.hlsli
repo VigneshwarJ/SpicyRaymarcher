@@ -94,6 +94,13 @@ float2 basicUnionWithColor(float2 distance1, float2 distance2)
 	return distance1.x < distance2.x ? distance1 : distance2;
 }
 
+float smoothUnion(float distance1, float distance2, float smoothFactor)
+{
+    //d1 and d2 are distance function 1 and 2
+    float h = clamp(0.5 + 0.5 * (distance2 - distance1) / smoothFactor, 0.0, 1.0);
+    return lerp(distance2, distance1, h) - smoothFactor * h * (1.0 - h);
+}
+
 float plane(float3 p)
 {
 	return p.y;
