@@ -31,7 +31,8 @@
 enum class SDFType
 {
 	Sphere,
-	Box
+	Box,
+	Torus
 };
 
 struct PrimitiveData
@@ -63,10 +64,12 @@ public:
 
 	void AddSphere();
 	void AddBox();
+	void AddTorus();
 	void ChangeSphereSettings(int number);
 	void UpdateGUI();
 	void ShowSphereSettings(int selectedIndex);
 	void ShowBoxSettings(int selectedIndex);
+	void ShowTorusSettings(int selectedIndex);
 
 	void DisplaySDFSettings();
 
@@ -93,6 +96,10 @@ private:
 
 	unsigned int sphereCount = 0;
 	unsigned int boxCount = 0;
+	unsigned int torusCount = 0;
+	unsigned int roundBoxCount = 0;
+	unsigned int cylinderCount = 0;
+	unsigned int coneCount = 0;
 	unsigned int materialCount = 1; //default material
 	float lightPos[3] = { 5.0, 10.0 , 0.0 };
 	//UISettings uiSettings;

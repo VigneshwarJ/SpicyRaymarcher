@@ -49,8 +49,16 @@ cbuffer ExternalData : register(b0)
 	int boxCount;
 	float3 lightPosition;
 	int sphereCount;
+	int torusCount;
+	int roundBoxCount;
+	int cylinderCount;
+	int coneCount;
 	SDFPrimitive spherePrims[MAX_COUNT];
 	SDFPrimitive boxPrims[MAX_COUNT];
+	SDFPrimitive torusPrims[MAX_COUNT];
+	SDFPrimitive roundBoxPrims[MAX_COUNT];
+	SDFPrimitive cylinderPrims[MAX_COUNT];
+	SDFPrimitive conePrims[MAX_COUNT];
 	Material material[MAX_COUNT];
 }
 
@@ -97,7 +105,7 @@ float2 map(float3 marcherPosition)
 	for (int i = 0; i < sphereCount; i++)
 	{
 		finalDistance = basicUnionWithColor(finalDistance,
-			float2(sphere(marcherPosition - spherePrims[i].Position, spherePrims[i].Size), spherePrims[i].MaterialType));
+			float2(sphere(marcherPosition - spherePrims[i].Position, spherePrims[i].Radius), spherePrims[i].MaterialType));
 	}
 
 	for (int i = 0; i < boxCount; i++)
@@ -105,6 +113,19 @@ float2 map(float3 marcherPosition)
 		finalDistance = basicUnionWithColor(finalDistance,
 			float2(box(marcherPosition - boxPrims[i].Position, boxPrims[i].Dimensions), boxPrims[i].MaterialType));
 	
+	}
+
+	for (int i = 0; i < torusCount; i++)
+	{
+		finalDistance = basicUnionWithColor(finalDistance,
+			float2(
+				torus(
+					marcherPosition - torusPrims[i].Position, 
+					torusPrims[i].Radius, 
+					torusPrims[i].smallRadius
+				), 
+				torusPrims[i].MaterialType));
+
 	}
 	return finalDistance;
 }
