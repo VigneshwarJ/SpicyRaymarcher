@@ -52,6 +52,8 @@ cbuffer ExternalData : register(b0)
 	SDFPrimitive spherePrims[MAX_COUNT];
 	SDFPrimitive boxPrims[MAX_COUNT];
 	Material material[MAX_COUNT];
+	float time;
+	float anim;
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -89,23 +91,28 @@ float calculateLighting(float3 position, float3 normal) {
 
 float2 map(float3 marcherPosition)
 {
-	//float2 finalDistance = basicUnionWithColor(float2(10000.0,1.0),
-	//	float2(plane(marcherPosition - float3(0,-5,0)),30));
+	float2 finalDistance = float2(plane(marcherPosition - float3(0,-1,0)),0);
 	//find the distance of the scene at this pixel
 
-	float2 finalDistance=(10000.0f,1);
+	//float2 finalDistance=(10000.0f,1);
 	for (int i = 0; i < sphereCount; i++)
 	{
+		float t = frac(time);
+		float y = 4.0 * t * (1.0 - t);
 		finalDistance = basicUnionWithColor(finalDistance,
-			float2(sphere(marcherPosition - spherePrims[i].Position, spherePrims[i].Size), spherePrims[i].MaterialType));
+			float2(sphere(marcherPosition - spherePrims[i].Position - float3(0,y,0), spherePrims[i].Size), spherePrims[i].MaterialType));
 	}
 
 	for (int i = 0; i < boxCount; i++)
 	{
+		float t = frac(time);
+		float y = 4.0 * t * (1.0 - t);
 		finalDistance = basicUnionWithColor(finalDistance,
-			float2(box(marcherPosition - boxPrims[i].Position, boxPrims[i].Dimensions), boxPrims[i].MaterialType));
+			float2(box(marcherPosition - boxPrims[i].Position - float3(0, y, 0), boxPrims[i].Dimensions), boxPrims[i].MaterialType));
 	
 	}
+
+
 	return finalDistance;
 }
 
@@ -193,8 +200,8 @@ float4 main(VertexToPixel input) : SV_Target
 	 rayDirection = getRayDirection(screenPosition);
 	 //material[30].color = float4(1, 0, .5, 1);
 
-	float3 skyColor = float3(0.7, 0.9, 1.0) + rayDirection.y * 0.8;
-
+	float3 skyColor = float3(0.4, 0.75, 1.0) - rayDirection.y * 1.2;
+	skyColor = lerp(skyColor, float3(0.6, 0.75, .8), exp(-9.0 * rayDirection.y));
 	float4 finalcolor = float4(skyColor, 1.0);
 
 	////The cuttoff point at which we say "hit something!"
@@ -219,10 +226,10 @@ float4 main(VertexToPixel input) : SV_Target
 		//float3 lig = calculateLighting(marcherPosition, normal); // sunlight
 		float amb = clamp(0.5 + 0.5 * normal.y, 0.0, 1.0); // ambient light
 		float dif = clamp(dot(normal, lig), 0.0, 10.0); // diffuse reflection from sunlight
-
+		float dom = clamp(dot(normal, float3(0,1,0)), 0.0, 10.0);
 		// backlight
 		float bac = clamp(dot(normal, normalize(float3(lig.x, 0.0, lig.z))), 0.0, 1.0) * clamp(1.0 - marcherPosition.y, 0.0, 1.0);
-		float dom = smoothstep(-0.1, 0.1, ref.y); // dome light
+		//float dom = smoothstep(-0.1, 0.1, ref.y); // dome light
 		float fre = pow(clamp(1.0 + dot(normal, rayDirection), 0.0, 1.0), 2.0); // fresnel
 		float spe = pow(clamp(dot(ref, lig), 0.0, 1.0), 16.0); // specular reflection
 
@@ -232,15 +239,14 @@ float4 main(VertexToPixel input) : SV_Target
 		float3 lin = float3(0.0,0.0,0.0);
 		lin += 1 * dif * float3(1.00, 1.0, 1.0);
 		lin += 0.40 * amb * float3(0.40, 0.60, 1.00) * occ;
-		//lin += 0.50 * dom * float3(0.40, 0.60, 1.00) * occ;
+		lin += 0.50 * dom * float3(0.40, 0.60, 1.00) * occ;
 		lin += 0.50 * bac * float3(0.25, 0.25, 0.25) * occ;
-		//lin += 0.25 * fre * float3(1.00, 1.00, 1.00) * occ;
+		lin += 0.25 * fre * float3(1.00, 1.00, 1.00) * occ;
 		diffuseColor = diffuseColor * lin;
 		// gamma
 		diffuseColor = pow(diffuseColor, float3(0.4545,0.4545,.4545));
 
 		finalcolor = float4(diffuseColor, 1.0);
 	}
-	//finalcolor = float4(rayDirection, 1.0);
 	return finalcolor;
 }

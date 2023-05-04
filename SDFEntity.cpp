@@ -134,6 +134,7 @@ void SDFEntity::UpdateGUI()
     {
         AddBox();
     }
+    
 
 }
 

@@ -53,5 +53,6 @@ struct RaymarchPSExternalData
 	SDFPrimRenderData spherePrims[MAX_SDF_COUNT];
 	SDFPrimRenderData boxPrims[MAX_SDF_COUNT];
 	SDFMaterial color[MAX_SDF_COUNT];
-
+	float time;
+	float anim;
 };
