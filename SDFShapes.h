@@ -22,13 +22,18 @@
 //
 //};
 
+// REMEMBER ALIGNMENT MATTERS HERE TOO, since this ends up in the arrays that go to the shader, it must FILL the last boundary
 struct SDFPrimRenderData //todo: low priority right now, but it may be good to have some sort of error checking or assertion of some kind, IE warn user when they try to assign a radius to type box
 {
 	DirectX::XMFLOAT3 Position = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);  // 16 bytes
-	float Size = 1.0f; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
+	float Radius = 1.0f; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
 
 	DirectX::XMFLOAT3 Dimensions = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);  // 32 bytes
 	int MaterialType;
+
+	float SmallRadius = 1.0f; //for torus, Radius will be the entire torus radius and smallRadius will be the thickness
+
+	DirectX::XMFLOAT3 padding;
 };
 
 struct SDFMaterial

@@ -80,22 +80,6 @@ void SDFRenderer::Render()
 			0, 0); // No scissor rects
 	}
 
-	//{
-	//	//io.WantCaptureMouse = true;
-	//	static float f = 0.0f;
-
-	//	ImGui::Begin("Settings", NULL, ImGuiWindowFlags_MenuBar);                          // Create a window called "Hello, world!" and append into it.
-	//	SDFEntity::GetSDFEntity()->DisplaySDFSettings();
-
-	//	
-
-	//
-
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//	ImGui::End();
-	//	//ImGui::End();
-	//}
-
 	// Rendering here!
 	{
 		// Set overall pipeline state
@@ -171,6 +155,15 @@ void SDFRenderer::Render()
 						psData->spherePrims[psData->sphereCount + i] = thisEntData->spherePrims[i];
 					}
 					psData->sphereCount += thisEntData->sphereCount;
+
+					//torus
+					lastFilledIndex = psData->torusCount;
+
+					for (int i = 0; i < thisEntData->torusCount; i++)
+					{
+						psData->torusPrims[psData->torusCount + i] = thisEntData->torusPrims[i];
+					}
+					psData->torusCount += thisEntData->torusCount;
 				}
 
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
