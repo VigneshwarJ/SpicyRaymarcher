@@ -19,7 +19,7 @@ SDFEntity::SDFEntity(int nth)
 {
     AddSphere();
     name = "SDF number " + std::to_string(nth);
-    psData.color[0] = SDFMaterial{ {1,1,1,1} };
+    
 }
 
 bool SDFEntity::CanAddPrimitive(int count)
@@ -174,6 +174,11 @@ void SDFEntity::ShowSphereSettings(int selectedIndex)
 	ImGui::SliderFloat("Radius", &psData.spherePrims[primitives[selectedIndex].idx].Radius, 0, 100);
 	//ImGui::SliderFloat("Radius", &thisEntData.spherePrims[primitives[selectedIndex].idx].Size, 0, 100);
 
+    ImGui::SeparatorText("looping Animation Settings");
+    ImGui::SliderFloat3("Delta position", (float*)&psData.spherePrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
+    ImGui::SliderFloat("rotation Radius", &psData.spherePrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
+    ImGui::SliderFloat("smooth step", &psData.spherePrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+
 
 }
 
@@ -185,6 +190,11 @@ void SDFEntity::ShowBoxSettings(int selectedIndex)
     //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     ImGui::SliderFloat3("Dimensions", (float*)&psData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
+    ImGui::SeparatorText("looping Animation Settings");
+    ImGui::SliderFloat3("Delta position", (float*)&psData.boxPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
+    ImGui::SliderFloat("rotation Radius", &psData.boxPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
+    ImGui::SliderFloat("smooth step", &psData.boxPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+
 
 }
 
@@ -196,6 +206,11 @@ void SDFEntity::ShowTorusSettings(int selectedIndex)
     //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     ImGui::SliderFloat("Large Radius", &psData.torusPrims[primitives[selectedIndex].idx].Radius, 0, 100);
     ImGui::SliderFloat("Small Radius", &psData.torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 10);
+    
+    ImGui::SeparatorText("looping Animation Settings");
+    ImGui::SliderFloat3("Delta position", (float*)&psData.torusPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
+    ImGui::SliderFloat("rotation Radius", &psData.torusPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
+    ImGui::SliderFloat("smooth step", &psData.torusPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
 
 }

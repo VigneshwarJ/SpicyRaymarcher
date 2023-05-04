@@ -44,6 +44,7 @@ position { 0.0, 0.0 , 7.0 }
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 	renderer = std::make_shared<SDFRenderer>();
+	
 }
 
 // --------------------------------------------------------
@@ -80,6 +81,8 @@ void Game::Init()
 		this->width / (float)this->height); // Aspect ratio
 
 	sdfEntities = std::make_shared<std::vector<SDFEntity>>();
+	sdfMaterials = std::make_shared<std::vector<SDFMaterial>>();
+	sdfMaterials->push_back(SDFMaterial{});
 	InitSDFRenderer();
 
 	// I put this in the sdfrenderer init method for now
@@ -102,6 +105,12 @@ void Game::CreateSDFEntity()
 	selectedEntityIndex = sdfEntities->size()-1;
 }
 
+void Game::CreateSDFMaterial()
+{
+	
+	sdfMaterials->push_back({});
+	selectedMaterialIndex = sdfMaterials->size() - 1;
+}
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -144,6 +153,10 @@ void Game::SDFMainGUI()
 	{
 		CreateSDFEntity();
 	}
+	if (ImGui::Button("AddMaterial"))
+	{
+		CreateSDFMaterial();
+	}
 	if (ImGui::BeginListBox("Entities"))
 	{
 		for (int i = 0; i < sdfEntities->size(); i++)
@@ -160,6 +173,32 @@ void Game::SDFMainGUI()
 		ImGui::EndListBox();
 
 	}
+	if (ImGui::BeginListBox("Materials"))
+	{
+		for (int i = 0; i < sdfMaterials->size(); i++)
+		{
+			const bool is_selected = (selectedMaterialIndex == i);
+			const char* name = "material " + i + '\0';
+			if (ImGui::Selectable(name, is_selected))
+				selectedMaterialIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndListBox();
+
+	}
+
+	ImGui::SeparatorText("Material Settings");
+
+
+	ImGui::ColorEdit3("Diffuse", (float*)&sdfMaterials->at(selectedMaterialIndex).diffuseColor);
+	//ImGui::ColorEdit3("Specular", (float*)&sdfMaterials->at(selectedMaterialIndex).specularColor);
+	//ImGui::SliderFloat3("Position", (float*)&thisEntData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+
+
+	ImGui::SliderFloat("specularity", &sdfMaterials->at(selectedMaterialIndex).shininess, 0, 100);
 
 	ImGui::Separator();
 

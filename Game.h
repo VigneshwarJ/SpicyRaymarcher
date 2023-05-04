@@ -48,6 +48,7 @@ private:
 	void InitSDFRenderer();
 
 	void CreateSDFEntity();
+	void CreateSDFMaterial();
 
 
 	//ui functions
@@ -90,7 +91,10 @@ private:
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;
 	std::shared_ptr<std::vector<SDFEntity>> sdfEntities;
+	std::shared_ptr<std::vector<SDFMaterial>> sdfMaterials;
+	//SDFMaterial UI_dataholder_material;
 	int selectedEntityIndex;
+	int selectedMaterialIndex =0;
 	
 };
 
