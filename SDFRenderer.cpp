@@ -172,6 +172,8 @@ void SDFRenderer::Render()
 				XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
 				XMStoreFloat3(&(psData->cameraUp), camera->GetUp());
 				psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
+				psData->anim = 1.0f;
+				psData->time = (float)ImGui::GetTime();
 
 
 				//// Send this to a chunk of the constant buffer heap
