@@ -71,7 +71,8 @@ void SDFEntity::AddBox()
     psData.primitives[MAX_PRIMITIVES + boxCount].Dimensions = DirectX::XMFLOAT3(uiSettings.size, uiSettings.size, uiSettings.size);*/
 
     
-    std::string name = "box" + std::to_string(boxCount);    PrimitiveData newPrim = {};
+    std::string name = "box" + std::to_string(boxCount);    
+    PrimitiveData newPrim = {};
     newPrim.name = name;
     newPrim.type = SDFType::Box;
     newPrim.idx = boxCount;
@@ -82,13 +83,29 @@ void SDFEntity::AddBox()
     //nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Box));
 }
 
+void SDFEntity::AddTorus()
+{
+    if (!CanAddPrimitive(torusCount))
+        return;
+
+
+    std::string name = "torus" + std::to_string(torusCount);
+    PrimitiveData newPrim = {};
+    newPrim.name = name;
+    newPrim.type = SDFType::Torus;
+    newPrim.idx = torusCount;
+    psData.torusPrims[torusCount++] = {}; //new struct with default values
+    //thisEntData.boxPrims[boxCount++] = {}; //new struct with default values
+    primitives.push_back(newPrim);
+}
+
 void SDFEntity::UpdateGUI()
 {
     if (ImGui::TreeNode("Primitives"))
     {
         if (ImGui::BeginListBox("Primitives"))
         {
-            for (int i = 0; i < sphereCount + boxCount; i++)
+            for (int i = 0; i < primitives.size(); i++)
             {
                 const bool is_selected = (item_current_idx == i);
                 const char* name = primitives.at(i).name.c_str(); //idk why it didnt work with [i] but why would strings in c++ ever miss out on a chance to make me miserable and confused
@@ -118,6 +135,10 @@ void SDFEntity::UpdateGUI()
             ShowBoxSettings(item_current_idx);
             break;
 
+        case SDFType::Torus:
+            ShowTorusSettings(item_current_idx);
+            break;
+
         default:
             break;
         }
@@ -134,7 +155,10 @@ void SDFEntity::UpdateGUI()
     {
         AddBox();
     }
-    
+    if (ImGui::Button("CreateTorus"))
+    {
+        AddTorus();
+    }
 
 }
 
@@ -147,7 +171,7 @@ void SDFEntity::ShowSphereSettings(int selectedIndex)
 	//ImGui::SliderFloat3("Position", (float*)&thisEntData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
 
 
-	ImGui::SliderFloat("Radius", &psData.spherePrims[primitives[selectedIndex].idx].Size, 0, 100);
+	ImGui::SliderFloat("Radius", &psData.spherePrims[primitives[selectedIndex].idx].Radius, 0, 100);
 	//ImGui::SliderFloat("Radius", &thisEntData.spherePrims[primitives[selectedIndex].idx].Size, 0, 100);
 
 
@@ -160,6 +184,18 @@ void SDFEntity::ShowBoxSettings(int selectedIndex)
     ImGui::SliderFloat3("Position", (float*)&psData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     ImGui::SliderFloat3("Dimensions", (float*)&psData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
+    //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
+
+}
+
+void SDFEntity::ShowTorusSettings(int selectedIndex)
+{
+    ImGui::SeparatorText("Torus Settings");
+
+    ImGui::SliderFloat3("Position", (float*)&psData.torusPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+    //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+    ImGui::SliderFloat("Large Radius", &psData.torusPrims[primitives[selectedIndex].idx].Radius, 0, 100);
+    ImGui::SliderFloat("Small Radius", &psData.torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 10);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
 
 }
@@ -211,5 +247,6 @@ RaymarchPSExternalData* SDFEntity::GetRayMarchPSData()
     psData.lightPosition = DirectX::XMFLOAT3A(lightPos);
     psData.sphereCount = sphereCount;
     psData.boxCount = boxCount;
+    psData.torusCount = torusCount;
     return &psData;
 }
