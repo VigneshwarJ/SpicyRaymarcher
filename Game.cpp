@@ -201,6 +201,9 @@ void Game::SDFMainGUI()
 
 	ImGui::SeparatorText("Light Settings");
 	ImGui::SliderFloat3("light position", (float*)&(psData->lightPosition), -100, 100);
+	ImGui::SeparatorText("Procedural Terrain parameters");
+	ImGui::SliderFloat("height", &(psData->height), -1, 1);
+	ImGui::SliderFloat("frequency", &(psData->anim), -10, 10);
 
 	ImGui::Separator();
 

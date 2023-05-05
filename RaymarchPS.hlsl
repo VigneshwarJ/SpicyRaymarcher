@@ -15,8 +15,10 @@ cbuffer ExternalData : register(b0)
 
 	float3 bgColor; // bg color not working
 	int boxCount;
+
 	float3 lightPosition;
 	int sphereCount;
+
 	int torusCount;
 	int roundBoxCount;
 	int cylinderCount;
@@ -26,9 +28,9 @@ cbuffer ExternalData : register(b0)
 	SDFPrimitive torusPrims[MAX_COUNT];
 	Material material[MAX_COUNT];
 	float time;
-	float anim;
+	float height;
+	float freq;
 	int materialCount;
-	float padding;
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -67,51 +69,11 @@ float calculateLighting(float3 position, float3 normal) {
 	//return  diffuseColor;
 }
 
-float2 map(float3 marcherPosition)
-{
-	float2 finalDistance = float2(plane(marcherPosition - float3(0,-1,0)),0);
-	//find the distance of the scene at this pixel
-
-	//float2 finalDistance=(10000.0f,1);
-	float t = frac(time);
-	t = t * (1.0 - t);
-	for (int i = 0; i < sphereCount; i++)
-	{
-		
-		float3 DeltaPosition = spherePrims[i].DeltaPosition * spherePrims[i].speed * t;
-		finalDistance = basicUnionWithColor(finalDistance,
-			float2(sphere(marcherPosition - spherePrims[i].Position - DeltaPosition, spherePrims[i].Radius), spherePrims[i].MaterialType));
-	}
-
-	for (int i = 0; i < boxCount; i++)
-	{
-		
-	
-		float3 DeltaPosition = boxPrims[i].DeltaPosition * boxPrims[i].speed * t;
-		finalDistance = basicUnionWithColor(finalDistance,
-			float2(box(marcherPosition - boxPrims[i].Position - boxPrims[i].DeltaPosition, boxPrims[i].Dimensions), boxPrims[i].MaterialType));
-	
-	}
-
-	for (int i = 0; i < torusCount; i++)
-	{
-		float3 DeltaPosition = torusPrims[i].DeltaPosition * torusPrims[i].speed * t;
-		finalDistance = basicUnionWithColor(finalDistance,
-			float2(
-				torus(
-					marcherPosition - torusPrims[i].Position - DeltaPosition,
-					torusPrims[i].Radius, 
-					torusPrims[i].smallRadius
-				), 
-				torusPrims[i].MaterialType));
-
-	}
-	return finalDistance;
-}
 
 Surface mapSmooth(float3 marcherPosition)
 {
-	Surface finalDistance = surface( material[0], plane(marcherPosition - float3(0, -1, 0)));
+	float terrainHeight = -1 - height *(sin(freq * marcherPosition.x) + sin(freq * marcherPosition.z));
+	Surface finalDistance = surface( material[0], plane(marcherPosition - float3(0, terrainHeight, 0)));
 	//find the distance of the scene at this pixel
 
 	//float2 finalDistance=(10000.0f,1);
@@ -194,7 +156,7 @@ float calculateAO(float3 pos, float3 nor)
 	for (int i = 0; i < 5; i++)
 	{
 		float h = 0.01 + 0.12 * float(i) / 4.0;
-		float d = map(pos + h * nor).x;
+		float d = mapSmooth(pos + h * nor).signedDistance;
 		occ += (h - d) * sca;
 		sca *= 0.95;
 		if (occ > 0.35) break;
