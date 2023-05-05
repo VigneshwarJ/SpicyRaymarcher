@@ -9,8 +9,8 @@
 class Material
 {
 public:
-	Material (DirectX::XMFLOAT4 color, float specularExponent)
-	:colorTint(color),specularExponent(specularExponent){}
+	Material (DirectX::XMFLOAT4 material, float specularExponent)
+	:colorTint(material),specularExponent(specularExponent){}
 	DirectX::XMFLOAT4 colorTint;
 	float specularExponent;
 };

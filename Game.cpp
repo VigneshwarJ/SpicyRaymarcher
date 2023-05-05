@@ -32,11 +32,7 @@ Game::Game(HINSTANCE hInstance)
 		1280,			   // Width of the window's client area
 		720,			   // Height of the window's client area
 		true),			   // Show extra stats (fps) in title bar?
-	vsync(false),
-	color{ 1.0f,1.0f,1.0f,1.0f },
-size(5.0f),
-lightPos{ 0.0, -10.0 , 0.0 },
-position { 0.0, 0.0 , 7.0 }
+	vsync(false)
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -44,6 +40,8 @@ position { 0.0, 0.0 , 7.0 }
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 	renderer = std::make_shared<SDFRenderer>();
+	psData = dynamic_cast<SDFRenderer&>(*renderer).GetPSData();
+	sdfMaterials = dynamic_cast<SDFRenderer&>(*renderer).GetMaterialBuffer();
 }
 
 // --------------------------------------------------------
@@ -80,6 +78,8 @@ void Game::Init()
 		this->width / (float)this->height); // Aspect ratio
 
 	sdfEntities = std::make_shared<std::vector<SDFEntity>>();
+	//sdfMaterials = std::make_shared<std::vector<SDFMaterial>>();
+	//sdfMaterials->push_back(SDFMaterial{});
 	InitSDFRenderer();
 
 	// I put this in the sdfrenderer init method for now
@@ -98,10 +98,15 @@ void Game::InitSDFRenderer()
 
 void Game::CreateSDFEntity()
 {
-	sdfEntities->push_back(SDFEntity(sdfEntities->size()));
+	sdfEntities->push_back(SDFEntity(sdfEntities->size(),psData));
 	selectedEntityIndex = sdfEntities->size()-1;
 }
 
+void Game::CreateSDFMaterial()
+{
+	selectedMaterialIndex = materialCount++;
+	psData->materialCount++;
+}
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -144,6 +149,10 @@ void Game::SDFMainGUI()
 	{
 		CreateSDFEntity();
 	}
+	if (ImGui::Button("AddMaterial"))
+	{
+		CreateSDFMaterial();
+	}
 	if (ImGui::BeginListBox("Entities"))
 	{
 		for (int i = 0; i < sdfEntities->size(); i++)
@@ -160,6 +169,33 @@ void Game::SDFMainGUI()
 		ImGui::EndListBox();
 
 	}
+	if (ImGui::BeginListBox("Materials"))
+	{
+		for (int i = 0; i < materialCount; i++)
+		{
+			const bool is_selected = (selectedMaterialIndex == i);
+			char name[10] ;
+			sprintf_s(name, "%d", i);
+			if (ImGui::Selectable(name, is_selected))
+				selectedMaterialIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndListBox();
+
+	}
+
+	ImGui::SeparatorText("Material Settings");
+
+
+	ImGui::ColorEdit3("Diffuse", (float*)&sdfMaterials[selectedMaterialIndex].diffuseColor);
+	//ImGui::ColorEdit3("Specular", (float*)&sdfMaterials->at(selectedMaterialIndex).specularColor);
+	//ImGui::SliderFloat3("Position", (float*)&thisEntData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+
+
+	ImGui::SliderFloat("specularity", &sdfMaterials[selectedMaterialIndex].shininess, 0, 100);
 
 	ImGui::Separator();
 

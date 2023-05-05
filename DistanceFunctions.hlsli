@@ -11,9 +11,37 @@ struct SDFPrimitive
     float smallRadius; //for torus, Radius will be the entire torus radius and smallRadius will be the thickness
 
 
-    float3 padding;
+    float3 DeltaPosition;
+
+    float smoothStep;
+    float RotationRadius;
+    float speed;
+    float buffer;
 
 };
+
+struct Material
+{
+    float3 diffuseColor;
+    float shininess;
+};
+
+struct Surface
+{
+    Material material;
+    float signedDistance;
+    float m;
+    //float3 padding;
+    
+};
+
+Surface surface(Material mat, float d)
+{
+    Surface surf;
+    surf.material = mat;
+    surf.signedDistance = d;
+    return surf;
+}
 
 float sphere(float3 position, float radius)
 {
@@ -83,6 +111,11 @@ float cone(in float3 p, in float2 c, float h)
     return sqrt(d) * sign(s);
 }
 
+float plane(float3 p)
+{
+    return p.y;
+}
+
 //by finding the closest distance between the two points, we can join two primitives together
 float basicUnion(float distance1, float distance2)
 {
@@ -101,7 +134,27 @@ float smoothUnion(float distance1, float distance2, float smoothFactor)
     return lerp(distance2, distance1, h) - smoothFactor * h * (1.0 - h);
 }
 
-float plane(float3 p)
-{
-	return p.y;
+Surface SmoothUnion(Surface surface1, Surface surface2, in float smoothness) {
+    float interpolation = clamp(0.5 + 0.5 * (surface2.signedDistance - surface1.signedDistance) / smoothness, 0.0, 1.0);
+    float3 material = lerp(surface2.material.diffuseColor, surface1.material.diffuseColor, interpolation);
+    float shininess = lerp(surface2.material.shininess, surface1.material.shininess, interpolation);
+    Material mat;
+    mat.diffuseColor = material;
+    mat.shininess = shininess;
+    return surface(mat,
+        lerp(surface2.signedDistance, surface1.signedDistance, interpolation) - smoothness * interpolation * (1.0 - interpolation));
 }
+
+
+// Surface shader (uses the Phong illumination model):
+//vec3 shadeSurface(in Surface surface, in Ray ray, in vec3 normal) {
+//    vec3 illuminationAmbient = surface.ambientColor * lightColor;
+//    float lambertian = max(0.0, dot(normal, lightDirection));
+//    vec3 illuminationDiffuse = lambertian * surface.diffuseColor * lightColor;
+//    vec3 reflection = reflect(lightDirection, normal);
+//    float specularAngle = max(0.0, dot(reflection, ray.direction));
+//    vec3 illuminationSpecular = clamp(pow(specularAngle, surface.shininess), 0.0, 1.0) * surface.specularColor * lightColor;
+//    return illuminationAmbient + illuminationDiffuse + illuminationSpecular;
+//}
+
+

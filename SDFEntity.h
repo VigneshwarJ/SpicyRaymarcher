@@ -53,7 +53,7 @@ struct PrimitiveData
 class SDFEntity
 {
 public:
-	SDFEntity(int nth);
+	SDFEntity(int nth, RaymarchPSExternalData* data);
 
 	//SDFEntity():uiSettings(){
 
@@ -100,7 +100,6 @@ private:
 	unsigned int roundBoxCount = 0;
 	unsigned int cylinderCount = 0;
 	unsigned int coneCount = 0;
-	unsigned int materialCount = 1; //default material
 	float lightPos[3] = { 5.0, 10.0 , 0.0 };
 	//UISettings uiSettings;
 	static std::unique_ptr<SDFEntity> s_Entity;
@@ -116,7 +115,7 @@ private:
 
 
 	//std::shared_ptr<RaymarchPSExternalData> psData = {}; //better, but wait until the rest of this is fixed
-	RaymarchPSExternalData psData = {};
+	RaymarchPSExternalData* const masterPSData;
 
 	//PerEntityData thisEntData = {};
 };

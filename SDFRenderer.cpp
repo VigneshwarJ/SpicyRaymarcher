@@ -63,12 +63,12 @@ void SDFRenderer::Render()
 		commandList->ResourceBarrier(1, &rb);
 
 		// Background color (Cornflower Blue in this case) for clearing
-		float color[] = { 0.4f, 0.6f, 0.75f, 1.0f };
+		float material[] = { 0.4f, 0.6f, 0.75f, 1.0f };
 
 		// Clear the RTV
 		commandList->ClearRenderTargetView(
 			rtvHandles[currentSwapBuffer],
-			color,
+			material,
 			0, 0); // No scissor rectangles
 
 		// Clear the depth buffer, too
@@ -107,8 +107,7 @@ void SDFRenderer::Render()
 			externalData.frustum[1] = camera->m_FrustumCorners[1];
 			externalData.frustum[2] = camera->m_FrustumCorners[2];
 			externalData.frustum[3] = camera->m_FrustumCorners[3];
-			//DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&externalData.projection);
-			//DirectX::XMMATRIX vp = DirectX::XMMatrixMultiply(v, p);
+
 			DirectX::XMStoreFloat4x4(&externalData.inverseViewProjection, XMMatrixInverse(0, v));
 			//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
@@ -119,68 +118,28 @@ void SDFRenderer::Render()
 		{
 			// TODO: should be made as member variable 
 
-		   /*
-		   TODO: Below should be moved inside Camera class
-
-		   why?
-		   */
-
 			//this is like if TroomTroom made a video about writing code lol
 			if (entities->size() > 0)//only do this if there is at least one entity
 			{
-				RaymarchPSExternalData* psData;// = {};
-				psData = entities->at(0).GetRayMarchPSData();
-				for (int i = 1; i < entities->size(); i++)
-				{
-					//use the existing psData counts to find where it should start filling the array from
-					//then fill the array by looping through the psData arrays from that point
 
-					RaymarchPSExternalData* thisEntData = entities->at(i).GetRayMarchPSData();
-
-					//boxes
-					int lastFilledIndex = psData->boxCount;
-
-					for (int i = 0; i < thisEntData->boxCount; i++)
-					{
-						psData->boxPrims[psData->boxCount + i] = thisEntData->boxPrims[i];
-					}
-
-					psData->boxCount += thisEntData->boxCount;
-
-					//spheres
-					lastFilledIndex = psData->sphereCount;
-
-					for (int i = 0; i < thisEntData->sphereCount; i++)
-					{
-						psData->spherePrims[psData->sphereCount + i] = thisEntData->spherePrims[i];
-					}
-					psData->sphereCount += thisEntData->sphereCount;
-
-					//torus
-					lastFilledIndex = psData->torusCount;
-
-					for (int i = 0; i < thisEntData->torusCount; i++)
-					{
-						psData->torusPrims[psData->torusCount + i] = thisEntData->torusPrims[i];
-					}
-					psData->torusCount += thisEntData->torusCount;
-				}
-
+				/*
+				TODO: Below should be moved inside Camera class
+				*/
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
-				psData->cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
-				XMStoreFloat3(&(psData->cameraForward), camera->GetForward());
-				XMStoreFloat3(&(psData->cameraRight), camera->GetRight());
-				XMStoreFloat3(&(psData->cameraUp), camera->GetUp());
-				psData->bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
-				psData->anim = 1.0f;
-				psData->time = (float)ImGui::GetTime();
-
+				masterPSData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
+				XMStoreFloat3(&(masterPSData.cameraForward), camera->GetForward());
+				XMStoreFloat3(&(masterPSData.cameraRight), camera->GetRight());
+				XMStoreFloat3(&(masterPSData.cameraUp), camera->GetUp());
+				masterPSData.bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
+				masterPSData.anim = 1.0f;
+				masterPSData.time = (float)ImGui::GetTime();
+				
 
 				//// Send this to a chunk of the constant buffer heap
 				//// and grab the GPU handle for it so we can set it for this draw
 				D3D12_GPU_DESCRIPTOR_HANDLE cbHandlePS =
 					dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle(
-						(void*)(psData), sizeof(RaymarchPSExternalData));
+						(void*)(&masterPSData), sizeof(RaymarchPSExternalData));
 				//// Set this constant buffer handle
 				//// Note: This assumes that descriptor table 1 is the
 				//// place to put this particular descriptor. This
@@ -191,15 +150,10 @@ void SDFRenderer::Render()
 
 		}
 
-
-
 		// Set them using IASetVertexBuffers() and IASetIndexBuffer()
 		commandList->IASetVertexBuffers(0, 1, &vbView);
 
-		// Call DrawIndexedInstanced() using the index count of this entity's mesh
 		commandList->DrawInstanced(3, 1, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-		//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
-
 
 		RenderImGui();
 
@@ -221,20 +175,11 @@ void SDFRenderer::Render()
 			// Present the current back buffer
 			swapChain->Present(vsync ? 1 : 0, 0);
 			//// Figure out which buffer is next
-			//currentSwapBuffer++;
-			//if (currentSwapBuffer >= numBackBuffers)
-			//	currentSwapBuffer = 0;
 			currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
 		}
 	}
 
 }
-
-//void SDFRenderer::RenderEntity(std::vector<std::shared_ptr<SDFEntity>> ent)
-//{
-//	entities = ent;
-//	Render();
-//}
 
 void SDFRenderer::createTriangleForScreenQuad()
 {

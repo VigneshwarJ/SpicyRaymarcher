@@ -55,7 +55,12 @@ public:
 	//void RenderEntity(std::vector<std::shared_ptr<SDFEntity>> entities);
 
 	void Render() override;
-
+	SDFMaterial* GetMaterialBuffer() {
+			return masterPSData.material;
+	}
+	RaymarchPSExternalData* GetPSData() {
+		return &masterPSData;
+	}
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeState() { return pipelineState; };
 
@@ -87,6 +92,7 @@ private:
 	std::shared_ptr<std::vector<SDFEntity>> entities;
 
 	void CreateRootSigAndPipelineState();
+	RaymarchPSExternalData masterPSData = {};
 	//I would like to split up the above function into these somehow, but there may not be a way to do that without it being a pain. Let's just get this up and running for now
 	//void LoadShaders();
 	//D3D12_INPUT_ELEMENT_DESC DefineInputLayout();

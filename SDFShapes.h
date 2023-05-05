@@ -33,12 +33,20 @@ struct SDFPrimRenderData //todo: low priority right now, but it may be good to h
 
 	float SmallRadius = 1.0f; //for torus, Radius will be the entire torus radius and smallRadius will be the thickness
 
-	DirectX::XMFLOAT3 padding;
+	DirectX::XMFLOAT3 DeltaPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	float smoothStep = 0;
+	float RotationRadius = 0;
+	float speed = 4;
+	float buffer;
 };
 
 struct SDFMaterial
 {
-	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT3 diffuseColor{ 1.0, 1.0, 1.0 };
+	//DirectX::XMFLOAT3 specularColor{ 1.0, 0.0, 0.0 };
+	float shininess;
+	//float padding;
 };
 
 

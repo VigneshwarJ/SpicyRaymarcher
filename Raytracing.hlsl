@@ -12,7 +12,7 @@ static const uint VertexSizeInBytes = 11 * 4; //alignment thing for above struct
 
 struct RayPayload //the data sent along with each ray
 {
-	float4 color; //should be as small as possible
+	float4 material; //should be as small as possible
 };
 
 // Note: We'll be using the built-in BuiltInTriangleIntersectionAttributes struct
@@ -151,7 +151,7 @@ void RayGen()
 
 	// Set up the payload for the ray
 	RayPayload payload;
-	payload.color = float4(0, 0, 0, 1);
+	payload.material = float4(0, 0, 0, 1);
 
 	// Perform the ray trace for this ray
 	TraceRay(
@@ -165,7 +165,7 @@ void RayGen()
 		payload);
 
 	// Set the final color of the buffer
-	OutputColor[rayIndices] = payload.color;
+	OutputColor[rayIndices] = payload.material;
 }
 
 
@@ -175,7 +175,7 @@ void Miss(inout RayPayload payload)
 {
 	// Nothing was hit, so return black for now.
 	// Ideally this is where we would do skybox stuff!
-	payload.color = float4(0, 0, 0, 1);
+	payload.material = float4(0, 0, 0, 1);
 }
 
 
@@ -204,5 +204,5 @@ void ClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttributes 
 
 	// Use the resulting data to set the final color
 	// Note: Here is where we would do actual shading!
-	payload.color = float4(interpolatedVert.normal, 1);
+	payload.material = float4(interpolatedVert.normal, 1);
 }

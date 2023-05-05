@@ -22,10 +22,7 @@
 #define START_BOXES MAX_PRIMITIVES
 #define MAX_COUNT 128
 
-struct Material
-{
-	float4 color;
-};
+
 //struct SDFPrimitive
 //{
 //
@@ -60,6 +57,8 @@ cbuffer ExternalData : register(b0)
 	Material material[MAX_COUNT];
 	float time;
 	float anim;
+	float materialCount;
+	float padding;
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -79,6 +78,9 @@ struct VertexToPixel
 	float2 uv           : TEXCOORD0;
 	float3 ray           : TEXCOORD1;
 };
+
+
+
 
 
 float3 getRayDirection(float2 screenPosition) {
@@ -101,33 +103,82 @@ float2 map(float3 marcherPosition)
 	//find the distance of the scene at this pixel
 
 	//float2 finalDistance=(10000.0f,1);
+	float t = frac(time);
+	t = t * (1.0 - t);
 	for (int i = 0; i < sphereCount; i++)
 	{
-		float t = frac(time);
-		float y = 4.0 * t * (1.0 - t);
+		
+		float3 DeltaPosition = spherePrims[i].DeltaPosition * spherePrims[i].speed * t;
 		finalDistance = basicUnionWithColor(finalDistance,
-			float2(sphere(marcherPosition - spherePrims[i].Position - float3(0,y,0), spherePrims[i].Radius), spherePrims[i].MaterialType));
+			float2(sphere(marcherPosition - spherePrims[i].Position - DeltaPosition, spherePrims[i].Radius), spherePrims[i].MaterialType));
 	}
 
 	for (int i = 0; i < boxCount; i++)
 	{
-		float t = frac(time);
-		float y = 4.0 * time * (1.0 - time);
+		
+	
+		float3 DeltaPosition = boxPrims[i].DeltaPosition * boxPrims[i].speed * t;
 		finalDistance = basicUnionWithColor(finalDistance,
-			float2(box(marcherPosition - boxPrims[i].Position - float3(0, y, 0), boxPrims[i].Dimensions), boxPrims[i].MaterialType));
+			float2(box(marcherPosition - boxPrims[i].Position - boxPrims[i].DeltaPosition, boxPrims[i].Dimensions), boxPrims[i].MaterialType));
 	
 	}
 
 	for (int i = 0; i < torusCount; i++)
 	{
+		float3 DeltaPosition = torusPrims[i].DeltaPosition * torusPrims[i].speed * t;
 		finalDistance = basicUnionWithColor(finalDistance,
 			float2(
 				torus(
-					marcherPosition - torusPrims[i].Position, 
+					marcherPosition - torusPrims[i].Position - DeltaPosition,
 					torusPrims[i].Radius, 
 					torusPrims[i].smallRadius
 				), 
 				torusPrims[i].MaterialType));
+
+	}
+	return finalDistance;
+}
+
+Surface mapSmooth(float3 marcherPosition)
+{
+	Surface finalDistance = surface( material[0], plane(marcherPosition - float3(0, -1, 0)));
+	//find the distance of the scene at this pixel
+
+	//float2 finalDistance=(10000.0f,1);
+	float t = frac(time);
+	t = t * (1.0 - t);
+	for (int i = 0; i < sphereCount; i++)
+	{
+
+		float3 DeltaPosition = spherePrims[i].DeltaPosition * spherePrims[i].speed * t;
+		finalDistance = SmoothUnion(finalDistance,
+			surface( material[spherePrims[i].MaterialType],
+			sphere(marcherPosition - spherePrims[i].Position - DeltaPosition, spherePrims[i].Radius)), spherePrims[i].smoothStep);
+	}
+
+	for (int i = 0; i < boxCount; i++)
+	{
+
+
+		float3 DeltaPosition = boxPrims[i].DeltaPosition * boxPrims[i].speed * t;
+		finalDistance = SmoothUnion(finalDistance,
+			surface( 
+				material[boxPrims[i].MaterialType],
+			box(marcherPosition - boxPrims[i].Position - boxPrims[i].DeltaPosition, boxPrims[i].Dimensions)), boxPrims[i].smoothStep);
+
+	}
+
+	for (int i = 0; i < torusCount; i++)
+	{
+		float3 DeltaPosition = torusPrims[i].DeltaPosition * torusPrims[i].speed * t;
+		finalDistance = SmoothUnion(finalDistance,
+			surface(
+				material[torusPrims[i].MaterialType],
+			torus(
+				marcherPosition - torusPrims[i].Position - DeltaPosition,
+				torusPrims[i].Radius,
+				torusPrims[i].smallRadius
+			)), torusPrims[i].smoothStep);
 
 	}
 	return finalDistance;
@@ -157,10 +208,10 @@ float calculateSoftshadow(float3 ro, float3 rd, float mint, float tmax)
 float3 calculateNormals(float3 pos)
 {
 	float2 e = float2(1.0, -1.0) * 0.5773 * 0.0005;
-	return normalize(e.xyy * map(pos + e.xyy).x +
-		e.yyx * map(pos + e.yyx).x +
-		e.yxy * map(pos + e.yxy).x +
-		e.xxx * map(pos + e.xxx).x);
+	return normalize(e.xyy * mapSmooth(pos + e.xyy).signedDistance +
+		e.yyx * mapSmooth(pos + e.yyx).signedDistance +
+		e.yxy * mapSmooth(pos + e.yxy).signedDistance +
+		e.xxx * mapSmooth(pos + e.xxx).signedDistance);
   
 }
 
@@ -184,24 +235,30 @@ float calculateAO(float3 pos, float3 nor)
 // Cast a ray from origin ro in direction rd until it hits an object.
 // Return (t,m) where t is distance traveled along the ray, and m
 // is the material of the object hit.
-float2 castRay(float3 rayOrigin, float3 rayDirection)
+Surface castRay(float3 rayOrigin, float3 rayDirection)
 {
 	float tmin = .50;
 	float tmax = 20.0;
 
 	float finalDistance = tmin;
-	float m = -1.0;
+	Material m;
+	float visib = -1.0;
 	for (int i = 0; i < 150; i++)
 	{
 		float precis = 0.0005 * finalDistance;
-		float2 res = map(rayOrigin + rayDirection * finalDistance);
-		if (res.x<precis || finalDistance>tmax) break;
-		finalDistance += res.x;
-		m = res.y;
+		//float2 res = map(rayOrigin + rayDirection * finalDistance);
+		Surface res = mapSmooth(rayOrigin + rayDirection * finalDistance);
+		//if (res.x<precis || finalDistance>tmax) break;
+		if (res.signedDistance<precis || finalDistance>tmax) break;
+		finalDistance += res.signedDistance;
+		m = res.material;
+		visib = 1.0;
 	}
 	//if (m == 30) return (finalDistance, 30);
-	if (finalDistance > tmax) m = -1.0;
-	return float2(finalDistance, m);
+	Surface surf = surface(m, finalDistance);
+	surf.m = (finalDistance > tmax) ? -1 : visib;
+	
+	return surf;
 }
 
 
@@ -227,13 +284,13 @@ float4 main(VertexToPixel input) : SV_Target
 	//float distances[primitivesCount];
 	float3 marcherPosition = cameraPosition; //start marching at the camera position
 	
-	float2 finalDistance = castRay(marcherPosition, rayDirection);
+	Surface finalDistance = castRay(marcherPosition, rayDirection);
 
-	marcherPosition = cameraPosition + finalDistance.x * rayDirection;
-	if (finalDistance.y > -1)
+	marcherPosition = cameraPosition + finalDistance.signedDistance * rayDirection;
+	if (finalDistance.m > -1.0)
 	{
 		float3 normal = calculateNormals(marcherPosition);
-		float3 diffuseColor = material[finalDistance.y].color.xyz;
+		float3 diffuseColor = finalDistance.material.diffuseColor;
 
 		float3 ref = reflect(rayDirection, normal);
 
@@ -248,7 +305,7 @@ float4 main(VertexToPixel input) : SV_Target
 		float bac = clamp(dot(normal, normalize(float3(lig.x, 0.0, lig.z))), 0.0, 1.0) * clamp(1.0 - marcherPosition.y, 0.0, 1.0);
 		//float dom = smoothstep(-0.1, 0.1, ref.y); // dome light
 		float fre = pow(clamp(1.0 + dot(normal, rayDirection), 0.0, 1.0), 2.0); // fresnel
-		float spe = pow(clamp(dot(ref, lig), 0.0, 1.0), 16.0); // specular reflection
+		float spe = pow(clamp(dot(ref, lig), 0.0, 1.0), finalDistance.material.shininess); // specular reflection
 
 		dif *= calculateSoftshadow(marcherPosition, lig, 0.02, 2.5);
 		dom *= calculateSoftshadow(marcherPosition, ref, 0.02, 2.5);

@@ -48,6 +48,7 @@ private:
 	void InitSDFRenderer();
 
 	void CreateSDFEntity();
+	void CreateSDFMaterial();
 
 
 	//ui functions
@@ -80,17 +81,17 @@ private:
 
 	//Light lights[128];
 
-	std::vector<Light> lights;
-	int lightCount;
-	float color[4]; 
-	float size; 
-	float lightPos[3]; 
-	float position[3]; 
+
 
 	//SDF variables
 	std::shared_ptr<RenderCore> sdfRenderer;
 	std::shared_ptr<std::vector<SDFEntity>> sdfEntities;
+	SDFMaterial* sdfMaterials;
+	RaymarchPSExternalData* psData;
+	unsigned int materialCount=1;
+	//SDFMaterial UI_dataholder_material;
 	int selectedEntityIndex;
+	int selectedMaterialIndex =0;
 	
 };
 
