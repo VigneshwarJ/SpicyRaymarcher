@@ -64,7 +64,7 @@ struct RaymarchPSExternalData
 	SDFMaterial material[MAX_SDF_COUNT];
 	
 	float time;
-	float anim;
+	float height = .1;
+	float anim = 2;
 	int materialCount;
-	float padding;
 };
