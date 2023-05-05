@@ -1,39 +1,9 @@
 
-
-
-// How many lights could we handle?
-//#define MAX_LIGHTS 128
-//struct SDFSphere
-//{
-//	//....
-//	// TODO: Figure out whether this works
-//	float  sphereRadius;
-//	float3 spherePosition;  // 16 bytes
-//
-//	float4 sphereColor;
-//	//....
-//
-//
-//};
-
 #include "DistanceFunctions.hlsli"
 
 #define MAX_PRIMITIVES 50
 #define START_BOXES MAX_PRIMITIVES
 #define MAX_COUNT 128
-
-
-//struct SDFPrimitive
-//{
-//
-//
-//	float3 Position;  // 16 bytes
-//    float Size; //this could be used for things other than just spheres, hence the name (but maybe will need to be renamed later if we add something like torus?)
-//	
-//	float3 Dimensions;  // 32 bytes
-//	int MaterialType;
-//
-//};
 
 // Alignment matters!!!
 cbuffer ExternalData : register(b0)
@@ -57,7 +27,7 @@ cbuffer ExternalData : register(b0)
 	Material material[MAX_COUNT];
 	float time;
 	float anim;
-	float materialCount;
+	int materialCount;
 	float padding;
 }
 
@@ -195,7 +165,7 @@ float calculateSoftshadow(float3 ro, float3 rd, float mint, float tmax)
 	float t = mint;
 	for (int i = 0; i < 16; i++)
 	{
-		float h = map(ro + rd * t).x;
+		float h = mapSmooth(ro + rd * t).signedDistance;
 		res = min(res, 8.0 * h / t);
 		t += clamp(h, 0.02, 0.10);
 		if (h<0.001 || t>tmax) break;

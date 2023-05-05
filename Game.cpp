@@ -199,6 +199,11 @@ void Game::SDFMainGUI()
 
 	ImGui::Separator();
 
+	ImGui::SeparatorText("Light Settings");
+	ImGui::SliderFloat3("light position", (float*)&(psData->lightPosition), -100, 100);
+
+	ImGui::Separator();
+
 	if (sdfEntities->size() > selectedEntityIndex)
 	{
 		sdfEntities->at(selectedEntityIndex).UpdateGUI();
