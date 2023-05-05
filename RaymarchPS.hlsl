@@ -26,6 +26,7 @@ cbuffer ExternalData : register(b0)
 	SDFPrimitive spherePrims[MAX_COUNT];
 	SDFPrimitive boxPrims[MAX_COUNT];
 	SDFPrimitive torusPrims[MAX_COUNT];
+	SDFPrimitive roundBoxPrims[MAX_COUNT];
 	Material material[MAX_COUNT];
 	float time;
 	float height;
@@ -79,6 +80,7 @@ Surface mapSmooth(float3 marcherPosition)
 	//float2 finalDistance=(10000.0f,1);
 	float t = frac(time);
 	t = t * (1.0 - t);
+
 	for (int i = 0; i < sphereCount; i++)
 	{
 
@@ -111,6 +113,21 @@ Surface mapSmooth(float3 marcherPosition)
 				torusPrims[i].Radius,
 				torusPrims[i].smallRadius
 			)), torusPrims[i].smoothStep);
+
+	}
+
+	for (int i = 0; i < roundBoxCount; i++)
+	{
+		float3 DeltaPosition = roundBoxPrims[i].DeltaPosition * roundBoxPrims[i].speed * t;
+		finalDistance = SmoothUnion(finalDistance,
+			surface(
+				material[roundBoxPrims[i].MaterialType],
+			roundBox(
+				marcherPosition - roundBoxPrims[i].Position - DeltaPosition,
+				roundBoxPrims[i].Dimensions,
+				roundBoxPrims[i].Radius
+			)), 
+			roundBoxPrims[i].smoothStep * t);
 
 	}
 	return finalDistance;

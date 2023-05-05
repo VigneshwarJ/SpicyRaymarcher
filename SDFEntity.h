@@ -15,7 +15,9 @@ enum class SDFType
 {
 	Sphere,
 	Box,
-	Torus
+	Torus,
+	RoundBox,
+	Cylinder
 };
 
 struct PrimitiveData
@@ -35,10 +37,18 @@ public:
 	void AddSphere();
 	void AddBox();
 	void AddTorus();
+	void AddRoundBox();
+	void AddCylinder();
+
 	void UpdateGUI();
+
 	void ShowSphereSettings(int selectedIndex);
 	void ShowBoxSettings(int selectedIndex);
 	void ShowTorusSettings(int selectedIndex);
+	void ShowRoundBoxSettings(int selectedIndex);
+	void ShowCylinderSettings(int selectedIndex);
+
+	void ShowMoreSettings(SDFPrimRenderData* thisData);
 
 	std::string* GetName() { return &name; };
 

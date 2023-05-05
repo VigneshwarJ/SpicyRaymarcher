@@ -61,10 +61,10 @@ float torus(float3 position, float largeR, float smallR)
 	return length(q) - smallR;
 }
 
-float roundBox(float3 p, float3 b, float r)
+float roundBox(float3 position, float3 bDimensions, float radius)
 {
-    float3 q = abs(p) - b;
-    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+    float3 q = abs(position) - bDimensions;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - radius;
 }
 
 float boxFrame(float3 p, float3 b, float e)
@@ -90,9 +90,9 @@ float cappedTorus(in float3 p, in float2 sc, in float ra, in float rb)
 //    return length(float2(length(q.xy) - r1, q.z)) - r2;
 //}
 
-float cylinder(float3 p, float3 c)
+float cylinder(float3 position, float3 c)
 {
-    return length(p.xz - c.xy) - c.z;
+    return length(position.xz - c.xy) - c.z;
 }
 
 float cone(in float3 p, in float2 c, float h)

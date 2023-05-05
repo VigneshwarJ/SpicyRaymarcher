@@ -145,13 +145,56 @@ void Game::UpdateGUI()
 void Game::SDFMainGUI()
 {
 
+	ImGui::SeparatorText("Light Settings");
+	ImGui::SliderFloat3("light position", (float*)&(psData->lightPosition), -100, 100);
+	ImGui::SeparatorText("Procedural Terrain parameters");
+	ImGui::SliderFloat("height", &(psData->height), -1, 1);
+	ImGui::SliderFloat("frequency", &(psData->anim), -10, 10);
+
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Materials"))
+	{
+		if (ImGui::Button("AddMaterial"))
+		{
+			CreateSDFMaterial();
+		}
+		if (ImGui::BeginListBox("Materials"))
+		{
+			for (int i = 0; i < materialCount; i++)
+			{
+				const bool is_selected = (selectedMaterialIndex == i);
+				char name[10];
+				sprintf_s(name, "%d", i);
+				if (ImGui::Selectable(name, is_selected))
+					selectedMaterialIndex = i;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndListBox();
+
+		}
+
+		ImGui::SeparatorText("Material Settings");
+
+
+		ImGui::ColorEdit3("Diffuse", (float*)&sdfMaterials[selectedMaterialIndex].diffuseColor);
+		//ImGui::ColorEdit3("Specular", (float*)&sdfMaterials->at(selectedMaterialIndex).specularColor);
+		//ImGui::SliderFloat3("Position", (float*)&thisEntData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+
+
+		ImGui::SliderFloat("specularity", &sdfMaterials[selectedMaterialIndex].shininess, 0, 100);
+
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
 	if (ImGui::Button("AddEntity"))
 	{
 		CreateSDFEntity();
-	}
-	if (ImGui::Button("AddMaterial"))
-	{
-		CreateSDFMaterial();
 	}
 	if (ImGui::BeginListBox("Entities"))
 	{
@@ -169,43 +212,6 @@ void Game::SDFMainGUI()
 		ImGui::EndListBox();
 
 	}
-	if (ImGui::BeginListBox("Materials"))
-	{
-		for (int i = 0; i < materialCount; i++)
-		{
-			const bool is_selected = (selectedMaterialIndex == i);
-			char name[10] ;
-			sprintf_s(name, "%d", i);
-			if (ImGui::Selectable(name, is_selected))
-				selectedMaterialIndex = i;
-
-			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		ImGui::EndListBox();
-
-	}
-
-	ImGui::SeparatorText("Material Settings");
-
-
-	ImGui::ColorEdit3("Diffuse", (float*)&sdfMaterials[selectedMaterialIndex].diffuseColor);
-	//ImGui::ColorEdit3("Specular", (float*)&sdfMaterials->at(selectedMaterialIndex).specularColor);
-	//ImGui::SliderFloat3("Position", (float*)&thisEntData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
-
-
-	ImGui::SliderFloat("specularity", &sdfMaterials[selectedMaterialIndex].shininess, 0, 100);
-
-	ImGui::Separator();
-
-	ImGui::SeparatorText("Light Settings");
-	ImGui::SliderFloat3("light position", (float*)&(psData->lightPosition), -100, 100);
-	ImGui::SeparatorText("Procedural Terrain parameters");
-	ImGui::SliderFloat("height", &(psData->height), -1, 1);
-	ImGui::SliderFloat("frequency", &(psData->anim), -10, 10);
-
-	ImGui::Separator();
 
 	if (sdfEntities->size() > selectedEntityIndex)
 	{
