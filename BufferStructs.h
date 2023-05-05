@@ -65,6 +65,6 @@ struct RaymarchPSExternalData
 	
 	float time;
 	float anim;
-	float materialCount;
+	int materialCount;
 	float padding;
 };

@@ -15,7 +15,7 @@ static bool continuos_update = false;
 
 
 
-SDFEntity::SDFEntity(int nth, RaymarchPSExternalData* data):
+SDFEntity::SDFEntity(unsigned int nth, RaymarchPSExternalData* data):
     masterPSData(data)
 {
     AddSphere();
@@ -38,17 +38,6 @@ void  SDFEntity::AddSphere()
     if (!CanAddPrimitive(sphereCount))
         return;
 
-    //psData.primitives[sphereCount].Size = uiSettings.size;
-    //psData.primitives[sphereCount].MaterialType = uiSettings.materialType;
-    //psData.primitives[sphereCount].Position = DirectX::XMFLOAT3(uiSettings.position);
-    //psData.primitives[sphereCount].MaterialType = SDF_TYPE_SPHERE;
-
-
-    
-
-    //SDFPrimRenderData renderData = {};
-    
-
     std::string name = "sphere" + std::to_string(sphereCount);
     PrimitiveData newPrim = {};
     newPrim.name = name;
@@ -57,10 +46,7 @@ void  SDFEntity::AddSphere()
     masterPSData->spherePrims[newPrim.idx] = {}; //new struct with default values
     masterPSData->sphereCount++;
     sphereCount++;
-    //thisEntData.spherePrims[sphereCount++] = {}; //new struct with default values
-    //newPrim.renderData
-    //primitivesNames->push_back(name);// std::to_string(primitiveCount));
-    //nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Sphere));
+
     primitives.push_back(newPrim);
 }
 
@@ -69,11 +55,6 @@ void SDFEntity::AddBox()
     if (!CanAddPrimitive(boxCount))
         return;
 
-   /* psData.primitives[MAX_PRIMITIVES+  boxCount].MaterialType = uiSettings.materialType;
-    psData.primitives[MAX_PRIMITIVES + boxCount].Position = DirectX::XMFLOAT3(uiSettings.position);
-    psData.primitives[MAX_PRIMITIVES + boxCount].Dimensions = DirectX::XMFLOAT3(uiSettings.size, uiSettings.size, uiSettings.size);*/
-
-    
     std::string name = "box" + std::to_string(boxCount);    
     PrimitiveData newPrim = {};
     newPrim.name = name;
@@ -81,11 +62,9 @@ void SDFEntity::AddBox()
     newPrim.idx = masterPSData->boxCount;
     masterPSData->boxPrims[newPrim.idx] = {}; //new struct with default values
     masterPSData->boxCount++;
-    //thisEntData.boxPrims[boxCount++] = {}; //new struct with default values
-    primitives.push_back(newPrim);
     boxCount++;
-    //primitivesNames->push_back(name);// std::to_string(primitiveCount));
-    //nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Box));
+    primitives.push_back(newPrim);
+
 }
 
 void SDFEntity::AddTorus()
@@ -99,11 +78,10 @@ void SDFEntity::AddTorus()
     newPrim.name = name;
     newPrim.type = SDFType::Torus;
     newPrim.idx = masterPSData->torusCount;
-    masterPSData->torusPrims[newPrim.idx] = {}; //new struct with default values
+    masterPSData->torusPrims[newPrim.idx] = {}; 
     masterPSData->torusCount++;
-    //thisEntData.boxPrims[boxCount++] = {}; //new struct with default values
-    primitives.push_back(newPrim);
     torusCount++;
+    primitives.push_back(newPrim);
 }
 
 void SDFEntity::UpdateGUI()
@@ -150,8 +128,7 @@ void SDFEntity::UpdateGUI()
             break;
         }
     }
-    ImGui::Separator();
-    //ImGui::ColorEdit3("Material color", uiSettings.color);
+
 
     ImGui::Separator();
     if (ImGui::Button("CreateSphere"))
@@ -207,7 +184,6 @@ void SDFEntity::ShowTorusSettings(int selectedIndex)
     ImGui::SeparatorText("Torus Settings");
 
     ImGui::SliderFloat3("Position", (float*)&masterPSData->torusPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
-    //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     ImGui::SliderFloat("Large Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].Radius, 0, 100);
     ImGui::SliderFloat("Small Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 10);
     ImGui::SliderInt("Material type", &masterPSData->torusPrims[primitives[selectedIndex].idx].MaterialType, 0, masterPSData->materialCount);
@@ -216,58 +192,5 @@ void SDFEntity::ShowTorusSettings(int selectedIndex)
     ImGui::SliderFloat3("Delta position", (float*)&masterPSData->torusPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
     ImGui::SliderFloat("rotation Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
     ImGui::SliderFloat("smooth step", &masterPSData->torusPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
-    //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
 
-}
-
-void SDFEntity::DisplaySDFSettings()
-{
-    //if (!ImGui::Begin("Dear ImGui Demo", NULL, ImGuiWindowFlags_MenuBar))
-    //{
-    //    ImGui::End();
-    //    return nullptr;
-    //}
-    if (ImGui::BeginMenuBar())
-    {
-
-        if (ImGui::BeginMenu("Shapes"))
-        {
-            ImGui::MenuItem("Sphere", NULL, &create_sphere);
-            ImGui::MenuItem("Cube", NULL, &create_cube);
-
-            ImGui::EndMenu();
-        }
-        //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
-        if (ImGui::BeginMenu("Tools"))
-        {
-
-            ImGui::EndMenu();
-        }
-        ImGui::EndMenuBar();
-    }
-    if (create_sphere)
-    {
-        //ShowSphereSettings();
-        UpdateGUI();
-    }
-    else if (create_cube)
-    {
-        
-    }
-    ImGui::SliderFloat3("light position", lightPos, -100.0, 100.0);
-        
-  
-
-    return;
-}
-
-//std::shared_ptr<RaymarchPSExternalData> SDFEntity::GetRayMarchPSData()
-RaymarchPSExternalData* SDFEntity::GetRayMarchPSData()
-{
-    return nullptr;
-    //masterPSDatalightPosition = DirectX::XMFLOAT3A(lightPos);
-    //masterPSData.sphereCount = sphereCount;
-    //masterPSData.boxCount = boxCount;
-    //masterPSData.torusCount = torusCount;
-    //return &masterPSData;
 }

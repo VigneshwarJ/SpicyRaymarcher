@@ -130,7 +130,7 @@ void SDFRenderer::Render()
 				XMStoreFloat3(&(masterPSData.cameraForward), camera->GetForward());
 				XMStoreFloat3(&(masterPSData.cameraRight), camera->GetRight());
 				XMStoreFloat3(&(masterPSData.cameraUp), camera->GetUp());
-				masterPSData.bgColor = XMFLOAT3A(0.0f, 0.0f, 0.0f);
+				masterPSData.bgColor = XMFLOAT3(0.0f, 0.0f, 0.0f);
 				masterPSData.anim = 1.0f;
 				masterPSData.time = (float)ImGui::GetTime();
 				

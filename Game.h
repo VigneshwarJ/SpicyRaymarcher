@@ -76,10 +76,8 @@ private:
 	std::shared_ptr<Camera> camera;
 	std::vector<std::shared_ptr<GameEntity>> entities;
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	//std::shared_ptr<Material> material;
 	std::vector<std::shared_ptr<Material>> materials;
 
-	//Light lights[128];
 
 
 
@@ -89,7 +87,6 @@ private:
 	SDFMaterial* sdfMaterials;
 	RaymarchPSExternalData* psData;
 	unsigned int materialCount=1;
-	//SDFMaterial UI_dataholder_material;
 	int selectedEntityIndex;
 	int selectedMaterialIndex =0;
 	

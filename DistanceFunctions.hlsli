@@ -146,15 +146,4 @@ Surface SmoothUnion(Surface surface1, Surface surface2, in float smoothness) {
 }
 
 
-// Surface shader (uses the Phong illumination model):
-//vec3 shadeSurface(in Surface surface, in Ray ray, in vec3 normal) {
-//    vec3 illuminationAmbient = surface.ambientColor * lightColor;
-//    float lambertian = max(0.0, dot(normal, lightDirection));
-//    vec3 illuminationDiffuse = lambertian * surface.diffuseColor * lightColor;
-//    vec3 reflection = reflect(lightDirection, normal);
-//    float specularAngle = max(0.0, dot(reflection, ray.direction));
-//    vec3 illuminationSpecular = clamp(pow(specularAngle, surface.shininess), 0.0, 1.0) * surface.specularColor * lightColor;
-//    return illuminationAmbient + illuminationDiffuse + illuminationSpecular;
-//}
-
 

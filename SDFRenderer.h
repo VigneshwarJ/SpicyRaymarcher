@@ -42,18 +42,6 @@ public:
 
 	~SDFRenderer();
 
-	/* This is kind of a hack. 
-	* I know it would be better to just have the one Render(), but since that overrides the one from RenderCore, that means
-	* it would need to take in SDFEntity list. Which kind of defeats the purpose of separating this class with RenderCore.
-	* 
-	* So for now, this will simply set the entities vector and then just call Render()
-	* 
-	* In the future if we have time it would be good to have a base Entity class so we don't have to force RenderCore to 
-	* accept a specific type of entity. Or, we could pass in a proper ptr/shared_ptr in Init, so it can just keep referencing the 
-	* same vector as it gets updated in Game. But i just don't have it in me to mess with that right now
-	*/
-	//void RenderEntity(std::vector<std::shared_ptr<SDFEntity>> entities);
-
 	void Render() override;
 	SDFMaterial* GetMaterialBuffer() {
 			return masterPSData.material;
