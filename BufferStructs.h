@@ -62,6 +62,9 @@ struct RaymarchPSExternalData
 	SDFPrimRenderData boxPrims[MAX_SDF_COUNT];
 	SDFPrimRenderData torusPrims[MAX_SDF_COUNT];
 	SDFMaterial material[MAX_SDF_COUNT];
+	
 	float time;
 	float anim;
+	float materialCount;
+	float padding;
 };

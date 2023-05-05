@@ -185,6 +185,7 @@ void SDFEntity::ShowSphereSettings(int selectedIndex)
     ImGui::SliderFloat3("Delta position", (float*)&masterPSData->spherePrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
     ImGui::SliderFloat("speed", &masterPSData->spherePrims[primitives[selectedIndex].idx].speed, 0, 10);
     ImGui::SliderFloat("smooth step", &masterPSData->spherePrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+    ImGui::SliderInt("Material type", &masterPSData->spherePrims[primitives[selectedIndex].idx].MaterialType, 0, masterPSData->materialCount);
 
 
 }
@@ -201,6 +202,7 @@ void SDFEntity::ShowBoxSettings(int selectedIndex)
     ImGui::SliderFloat3("Delta position", (float*)&masterPSData->boxPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
     ImGui::SliderFloat("rotation Radius", &masterPSData->boxPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
     ImGui::SliderFloat("smooth step", &masterPSData->boxPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+    ImGui::SliderInt("Material type", &masterPSData->boxPrims[primitives[selectedIndex].idx].MaterialType, 0, masterPSData->materialCount);
 
 
 }
@@ -218,6 +220,7 @@ void SDFEntity::ShowTorusSettings(int selectedIndex)
     ImGui::SliderFloat3("Delta position", (float*)&masterPSData->torusPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
     ImGui::SliderFloat("rotation Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
     ImGui::SliderFloat("smooth step", &masterPSData->torusPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+    ImGui::SliderInt("Material type", &masterPSData->torusPrims[primitives[selectedIndex].idx].MaterialType, 0, masterPSData->materialCount);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
 
 }

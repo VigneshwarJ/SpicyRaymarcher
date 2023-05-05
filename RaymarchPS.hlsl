@@ -57,6 +57,8 @@ cbuffer ExternalData : register(b0)
 	Material material[MAX_COUNT];
 	float time;
 	float anim;
+	float materialCount;
+	float padding;
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages

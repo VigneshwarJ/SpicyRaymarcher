@@ -105,6 +105,7 @@ void Game::CreateSDFEntity()
 void Game::CreateSDFMaterial()
 {
 	selectedMaterialIndex = materialCount++;
+	psData->materialCount++;
 }
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
