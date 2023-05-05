@@ -48,20 +48,20 @@ struct RaymarchPSExternalData
 	DirectX::XMFLOAT3A cameraUp;
 
 	DirectX::XMFLOAT3 bgColor;
-	int boxCount;
+	int boxCount=0;
 
 	DirectX::XMFLOAT3 lightPosition;
-	int sphereCount;
+	int sphereCount=0;
 
-	int torusCount;
-	int roundBoxCount;
-	int cylinderCount;
-	int coneCount;
+	int torusCount=0;
+	int roundBoxCount=0;
+	int cylinderCount=0;
+	int coneCount=0;
 
 	SDFPrimRenderData spherePrims[MAX_SDF_COUNT];
 	SDFPrimRenderData boxPrims[MAX_SDF_COUNT];
 	SDFPrimRenderData torusPrims[MAX_SDF_COUNT];
-	SDFMaterial color[MAX_SDF_COUNT];
+	SDFMaterial material[MAX_SDF_COUNT];
 	float time;
 	float anim;
 };

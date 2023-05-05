@@ -136,10 +136,10 @@ float smoothUnion(float distance1, float distance2, float smoothFactor)
 
 Surface SmoothUnion(Surface surface1, Surface surface2, in float smoothness) {
     float interpolation = clamp(0.5 + 0.5 * (surface2.signedDistance - surface1.signedDistance) / smoothness, 0.0, 1.0);
-    float3 color = lerp(surface2.material.diffuseColor, surface1.material.diffuseColor, interpolation);
+    float3 material = lerp(surface2.material.diffuseColor, surface1.material.diffuseColor, interpolation);
     float shininess = lerp(surface2.material.shininess, surface1.material.shininess, interpolation);
     Material mat;
-    mat.diffuseColor = color;
+    mat.diffuseColor = material;
     mat.shininess = shininess;
     return surface(mat,
         lerp(surface2.signedDistance, surface1.signedDistance, interpolation) - smoothness * interpolation * (1.0 - interpolation));

@@ -53,7 +53,7 @@ struct PrimitiveData
 class SDFEntity
 {
 public:
-	SDFEntity(int nth);
+	SDFEntity(int nth, RaymarchPSExternalData* data);
 
 	//SDFEntity():uiSettings(){
 
@@ -116,7 +116,7 @@ private:
 
 
 	//std::shared_ptr<RaymarchPSExternalData> psData = {}; //better, but wait until the rest of this is fixed
-	RaymarchPSExternalData psData = {};
+	RaymarchPSExternalData* const masterPSData;
 
 	//PerEntityData thisEntData = {};
 };

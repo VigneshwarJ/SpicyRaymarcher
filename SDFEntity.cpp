@@ -15,7 +15,8 @@ static bool continuos_update = false;
 
 
 
-SDFEntity::SDFEntity(int nth)
+SDFEntity::SDFEntity(int nth, RaymarchPSExternalData* data):
+    masterPSData(data)
 {
     AddSphere();
     name = "SDF number " + std::to_string(nth);
@@ -52,8 +53,10 @@ void  SDFEntity::AddSphere()
     PrimitiveData newPrim = {};
     newPrim.name = name;
     newPrim.type = SDFType::Sphere;
-    newPrim.idx = sphereCount;
-    psData.spherePrims[sphereCount++] = {}; //new struct with default values
+    newPrim.idx = masterPSData->sphereCount;
+    masterPSData->spherePrims[newPrim.idx] = {}; //new struct with default values
+    masterPSData->sphereCount++;
+    sphereCount++;
     //thisEntData.spherePrims[sphereCount++] = {}; //new struct with default values
     //newPrim.renderData
     //primitivesNames->push_back(name);// std::to_string(primitiveCount));
@@ -75,10 +78,12 @@ void SDFEntity::AddBox()
     PrimitiveData newPrim = {};
     newPrim.name = name;
     newPrim.type = SDFType::Box;
-    newPrim.idx = boxCount;
-    psData.boxPrims[boxCount++] = {}; //new struct with default values
+    newPrim.idx = masterPSData->boxCount;
+    masterPSData->boxPrims[newPrim.idx] = {}; //new struct with default values
+    masterPSData->boxCount++;
     //thisEntData.boxPrims[boxCount++] = {}; //new struct with default values
     primitives.push_back(newPrim);
+    boxCount++;
     //primitivesNames->push_back(name);// std::to_string(primitiveCount));
     //nameToType->insert(std::pair<std::string, SDFType>(name, SDFType::Box));
 }
@@ -93,10 +98,12 @@ void SDFEntity::AddTorus()
     PrimitiveData newPrim = {};
     newPrim.name = name;
     newPrim.type = SDFType::Torus;
-    newPrim.idx = torusCount;
-    psData.torusPrims[torusCount++] = {}; //new struct with default values
+    newPrim.idx = masterPSData->torusCount;
+    masterPSData->torusPrims[newPrim.idx] = {}; //new struct with default values
+    masterPSData->torusCount++;
     //thisEntData.boxPrims[boxCount++] = {}; //new struct with default values
     primitives.push_back(newPrim);
+    torusCount++;
 }
 
 void SDFEntity::UpdateGUI()
@@ -167,17 +174,17 @@ void SDFEntity::ShowSphereSettings(int selectedIndex)
     ImGui::SeparatorText("Sphere Settings");
 
 
-	ImGui::SliderFloat3("Position", (float*)&psData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+	ImGui::SliderFloat3("Position", (float*)&masterPSData->spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
 	//ImGui::SliderFloat3("Position", (float*)&thisEntData.spherePrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
 
 
-	ImGui::SliderFloat("Radius", &psData.spherePrims[primitives[selectedIndex].idx].Radius, 0, 100);
+	ImGui::SliderFloat("Radius", &masterPSData->spherePrims[primitives[selectedIndex].idx].Radius, 0, 100);
 	//ImGui::SliderFloat("Radius", &thisEntData.spherePrims[primitives[selectedIndex].idx].Size, 0, 100);
 
     ImGui::SeparatorText("looping Animation Settings");
-    ImGui::SliderFloat3("Delta position", (float*)&psData.spherePrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
-    ImGui::SliderFloat("rotation Radius", &psData.spherePrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
-    ImGui::SliderFloat("smooth step", &psData.spherePrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+    ImGui::SliderFloat3("Delta position", (float*)&masterPSData->spherePrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
+    ImGui::SliderFloat("speed", &masterPSData->spherePrims[primitives[selectedIndex].idx].speed, 0, 10);
+    ImGui::SliderFloat("smooth step", &masterPSData->spherePrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
 
 
 }
@@ -186,14 +193,14 @@ void SDFEntity::ShowBoxSettings(int selectedIndex)
 {
     ImGui::SeparatorText("Box Settings");
 
-    ImGui::SliderFloat3("Position", (float*)&psData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+    ImGui::SliderFloat3("Position", (float*)&masterPSData->boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
-    ImGui::SliderFloat3("Dimensions", (float*)&psData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
+    ImGui::SliderFloat3("Dimensions", (float*)&masterPSData->boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
     ImGui::SeparatorText("looping Animation Settings");
-    ImGui::SliderFloat3("Delta position", (float*)&psData.boxPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
-    ImGui::SliderFloat("rotation Radius", &psData.boxPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
-    ImGui::SliderFloat("smooth step", &psData.boxPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+    ImGui::SliderFloat3("Delta position", (float*)&masterPSData->boxPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
+    ImGui::SliderFloat("rotation Radius", &masterPSData->boxPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
+    ImGui::SliderFloat("smooth step", &masterPSData->boxPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
 
 
 }
@@ -202,15 +209,15 @@ void SDFEntity::ShowTorusSettings(int selectedIndex)
 {
     ImGui::SeparatorText("Torus Settings");
 
-    ImGui::SliderFloat3("Position", (float*)&psData.torusPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
+    ImGui::SliderFloat3("Position", (float*)&masterPSData->torusPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
     //ImGui::SliderFloat3("Position", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Position, -50.0, 50.0);
-    ImGui::SliderFloat("Large Radius", &psData.torusPrims[primitives[selectedIndex].idx].Radius, 0, 100);
-    ImGui::SliderFloat("Small Radius", &psData.torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 10);
+    ImGui::SliderFloat("Large Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].Radius, 0, 100);
+    ImGui::SliderFloat("Small Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].SmallRadius, 0, 10);
     
     ImGui::SeparatorText("looping Animation Settings");
-    ImGui::SliderFloat3("Delta position", (float*)&psData.torusPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
-    ImGui::SliderFloat("rotation Radius", &psData.torusPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
-    ImGui::SliderFloat("smooth step", &psData.torusPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
+    ImGui::SliderFloat3("Delta position", (float*)&masterPSData->torusPrims[primitives[selectedIndex].idx].DeltaPosition, 0, 10);
+    ImGui::SliderFloat("rotation Radius", &masterPSData->torusPrims[primitives[selectedIndex].idx].RotationRadius, 0, 10);
+    ImGui::SliderFloat("smooth step", &masterPSData->torusPrims[primitives[selectedIndex].idx].smoothStep, 0, 1);
     //ImGui::SliderFloat3("Dimensions", (float*)&thisEntData.boxPrims[primitives[selectedIndex].idx].Dimensions, -100.0, 100.0);
 
 }
@@ -259,9 +266,10 @@ void SDFEntity::DisplaySDFSettings()
 //std::shared_ptr<RaymarchPSExternalData> SDFEntity::GetRayMarchPSData()
 RaymarchPSExternalData* SDFEntity::GetRayMarchPSData()
 {
-    psData.lightPosition = DirectX::XMFLOAT3A(lightPos);
-    psData.sphereCount = sphereCount;
-    psData.boxCount = boxCount;
-    psData.torusCount = torusCount;
-    return &psData;
+    return nullptr;
+    //masterPSDatalightPosition = DirectX::XMFLOAT3A(lightPos);
+    //masterPSData.sphereCount = sphereCount;
+    //masterPSData.boxCount = boxCount;
+    //masterPSData.torusCount = torusCount;
+    //return &masterPSData;
 }
