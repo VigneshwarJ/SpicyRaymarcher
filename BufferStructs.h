@@ -50,7 +50,7 @@ struct RaymarchPSExternalData
 	DirectX::XMFLOAT3 bgColor;
 	int boxCount=0;
 
-	DirectX::XMFLOAT3 lightPosition;
+	DirectX::XMFLOAT3 lightPosition = { 5.0, 10.0 , 0.0 };
 	int sphereCount=0;
 
 	int torusCount=0;

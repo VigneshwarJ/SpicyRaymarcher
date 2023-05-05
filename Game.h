@@ -88,7 +88,7 @@ private:
 	std::shared_ptr<std::vector<SDFEntity>> sdfEntities;
 	SDFMaterial* sdfMaterials;
 	RaymarchPSExternalData* psData;
-	unsigned int materialCount=0;
+	unsigned int materialCount=1;
 	//SDFMaterial UI_dataholder_material;
 	int selectedEntityIndex;
 	int selectedMaterialIndex =0;

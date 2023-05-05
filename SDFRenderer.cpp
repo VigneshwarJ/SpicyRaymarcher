@@ -107,8 +107,7 @@ void SDFRenderer::Render()
 			externalData.frustum[1] = camera->m_FrustumCorners[1];
 			externalData.frustum[2] = camera->m_FrustumCorners[2];
 			externalData.frustum[3] = camera->m_FrustumCorners[3];
-			//DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&externalData.projection);
-			//DirectX::XMMATRIX vp = DirectX::XMMatrixMultiply(v, p);
+
 			DirectX::XMStoreFloat4x4(&externalData.inverseViewProjection, XMMatrixInverse(0, v));
 			//			//send to a chunk of a constant buffer heap, and grab the GPU handle we need to draw
 			D3D12_GPU_DESCRIPTOR_HANDLE handleVS = dx12HelperInst.FillNextConstantBufferAndGetGPUDescriptorHandle((void*)(&externalData), sizeof(externalData));
@@ -119,53 +118,13 @@ void SDFRenderer::Render()
 		{
 			// TODO: should be made as member variable 
 
-		   /*
-		   TODO: Below should be moved inside Camera class
-
-		   why?
-		   */
-
 			//this is like if TroomTroom made a video about writing code lol
 			if (entities->size() > 0)//only do this if there is at least one entity
 			{
-			//	// = {};
-			//	masterPSData = entities->at(0).GetRayMarchPSData();
-			//	for (int i = 1; i < entities->size(); i++)
-			//	{
-			//		//use the existing psData counts to find where it should start filling the array from
-			//		//then fill the array by looping through the psData arrays from that point
 
-			//		RaymarchPSExternalData* thisEntData = entities->at(i).GetRayMarchPSData();
-
-			//		//boxes
-			//		int lastFilledIndex = masterPSData.boxCount;
-
-			//		for (int i = 0; i < thisEntData->boxCount; i++)
-			//		{
-			//			masterPSData.boxPrims[masterPSData.boxCount + i] = thisEntData->boxPrims[i];
-			//		}
-
-			//		masterPSData->boxCount += thisEntData->boxCount;
-
-			//		//spheres
-			//		lastFilledIndex = masterPSData->sphereCount;
-
-			//		for (int i = 0; i < thisEntData->sphereCount; i++)
-			//		{
-			//			masterPSData->spherePrims[masterPSData->sphereCount + i] = thisEntData->spherePrims[i];
-			//		}
-			//		masterPSData->sphereCount += thisEntData->sphereCount;
-
-			//		//torus
-			//		lastFilledIndex = masterPSData->torusCount;
-
-			//		for (int i = 0; i < thisEntData->torusCount; i++)
-			//		{
-			//			masterPSData->torusPrims[masterPSData->torusCount + i] = thisEntData->torusPrims[i];
-			//		}
-			//		masterPSData->torusCount += thisEntData->torusCount;
-			//	}
-
+				/*
+				TODO: Below should be moved inside Camera class
+				*/
 				XMFLOAT3 pos = camera->GetTransform()->GetPosition();
 				masterPSData.cameraPosition = XMFLOAT3A(pos.x, pos.y, pos.z);
 				XMStoreFloat3(&(masterPSData.cameraForward), camera->GetForward());
@@ -191,15 +150,10 @@ void SDFRenderer::Render()
 
 		}
 
-
-
 		// Set them using IASetVertexBuffers() and IASetIndexBuffer()
 		commandList->IASetVertexBuffers(0, 1, &vbView);
 
-		// Call DrawIndexedInstanced() using the index count of this entity's mesh
 		commandList->DrawInstanced(3, 1, 0, 0); //first is the PER INSTANCE index count. second is HOW MANY of the INSTANCES themselves
-		//commandList->DrawIndexedInstanced(0, 0, 0, 0, 0);//0 may not work at all for the first two but its true so
-
 
 		RenderImGui();
 
@@ -221,20 +175,11 @@ void SDFRenderer::Render()
 			// Present the current back buffer
 			swapChain->Present(vsync ? 1 : 0, 0);
 			//// Figure out which buffer is next
-			//currentSwapBuffer++;
-			//if (currentSwapBuffer >= numBackBuffers)
-			//	currentSwapBuffer = 0;
 			currentSwapBuffer = dx12HelperInst.SyncSwapChain(currentSwapBuffer);
 		}
 	}
 
 }
-
-//void SDFRenderer::RenderEntity(std::vector<std::shared_ptr<SDFEntity>> ent)
-//{
-//	entities = ent;
-//	Render();
-//}
 
 void SDFRenderer::createTriangleForScreenQuad()
 {
